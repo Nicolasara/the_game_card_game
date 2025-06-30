@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: proto/game.proto
+// source: game.proto
 
 package proto
 
@@ -19,15 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GameService_CreateGame_FullMethodName = "/proto.GameService/CreateGame"
+	GameService_CreateGame_FullMethodName      = "/game.GameService/CreateGame"
+	GameService_JoinGame_FullMethodName        = "/game.GameService/JoinGame"
+	GameService_PlayCard_FullMethodName        = "/game.GameService/PlayCard"
+	GameService_StreamGameState_FullMethodName = "/game.GameService/StreamGameState"
 )
 
 // GameServiceClient is the client API for GameService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// The Game service definition.
 type GameServiceClient interface {
-	// Defines a method to create a new game
+	// Create a new game.
 	CreateGame(ctx context.Context, in *CreateGameRequest, opts ...grpc.CallOption) (*CreateGameResponse, error)
+	// Join an existing game.
+	JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (*JoinGameResponse, error)
+	// Play a card in a game.
+	PlayCard(ctx context.Context, in *PlayCardRequest, opts ...grpc.CallOption) (*PlayCardResponse, error)
+	// Stream the state of a game.
+	StreamGameState(ctx context.Context, in *StreamGameStateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameState], error)
 }
 
 type gameServiceClient struct {
@@ -48,12 +59,59 @@ func (c *gameServiceClient) CreateGame(ctx context.Context, in *CreateGameReques
 	return out, nil
 }
 
+func (c *gameServiceClient) JoinGame(ctx context.Context, in *JoinGameRequest, opts ...grpc.CallOption) (*JoinGameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(JoinGameResponse)
+	err := c.cc.Invoke(ctx, GameService_JoinGame_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServiceClient) PlayCard(ctx context.Context, in *PlayCardRequest, opts ...grpc.CallOption) (*PlayCardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PlayCardResponse)
+	err := c.cc.Invoke(ctx, GameService_PlayCard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameServiceClient) StreamGameState(ctx context.Context, in *StreamGameStateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameState], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[0], GameService_StreamGameState_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamGameStateRequest, GameState]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameService_StreamGameStateClient = grpc.ServerStreamingClient[GameState]
+
 // GameServiceServer is the server API for GameService service.
 // All implementations must embed UnimplementedGameServiceServer
 // for forward compatibility.
+//
+// The Game service definition.
 type GameServiceServer interface {
-	// Defines a method to create a new game
+	// Create a new game.
 	CreateGame(context.Context, *CreateGameRequest) (*CreateGameResponse, error)
+	// Join an existing game.
+	JoinGame(context.Context, *JoinGameRequest) (*JoinGameResponse, error)
+	// Play a card in a game.
+	PlayCard(context.Context, *PlayCardRequest) (*PlayCardResponse, error)
+	// Stream the state of a game.
+	StreamGameState(*StreamGameStateRequest, grpc.ServerStreamingServer[GameState]) error
 	mustEmbedUnimplementedGameServiceServer()
 }
 
@@ -66,6 +124,15 @@ type UnimplementedGameServiceServer struct{}
 
 func (UnimplementedGameServiceServer) CreateGame(context.Context, *CreateGameRequest) (*CreateGameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateGame not implemented")
+}
+func (UnimplementedGameServiceServer) JoinGame(context.Context, *JoinGameRequest) (*JoinGameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinGame not implemented")
+}
+func (UnimplementedGameServiceServer) PlayCard(context.Context, *PlayCardRequest) (*PlayCardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayCard not implemented")
+}
+func (UnimplementedGameServiceServer) StreamGameState(*StreamGameStateRequest, grpc.ServerStreamingServer[GameState]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamGameState not implemented")
 }
 func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
 func (UnimplementedGameServiceServer) testEmbeddedByValue()                     {}
@@ -106,18 +173,79 @@ func _GameService_CreateGame_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameService_JoinGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinGameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServiceServer).JoinGame(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameService_JoinGame_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServiceServer).JoinGame(ctx, req.(*JoinGameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameService_PlayCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServiceServer).PlayCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameService_PlayCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServiceServer).PlayCard(ctx, req.(*PlayCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameService_StreamGameState_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamGameStateRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GameServiceServer).StreamGameState(m, &grpc.GenericServerStream[StreamGameStateRequest, GameState]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GameService_StreamGameStateServer = grpc.ServerStreamingServer[GameState]
+
 // GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GameService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.GameService",
+	ServiceName: "game.GameService",
 	HandlerType: (*GameServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "CreateGame",
 			Handler:    _GameService_CreateGame_Handler,
 		},
+		{
+			MethodName: "JoinGame",
+			Handler:    _GameService_JoinGame_Handler,
+		},
+		{
+			MethodName: "PlayCard",
+			Handler:    _GameService_PlayCard_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/game.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamGameState",
+			Handler:       _GameService_StreamGameState_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "game.proto",
 }

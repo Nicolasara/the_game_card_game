@@ -1,21 +1,110 @@
 syntax = "proto3";
 
-package proto;
+package game;
 
-option go_package = "the_game_card_game/proto";
+import "google/api/annotations.proto";
 
+option go_package = "github.com/nico-araujo/the-game-card-game/proto";
+
+// The Game service definition.
 service GameService {
-    // Defines a method to create a new game
-    rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+  // Create a new game.
+  rpc CreateGame(CreateGameRequest) returns (CreateGameResponse) {
+    option (google.api.http) = {
+      post: "/v1/games"
+      body: "*"
+    };
+  }
+
+  // Join an existing game.
+  rpc JoinGame(JoinGameRequest) returns (JoinGameResponse) {
+    option (google.api.http) = {
+      post: "/v1/games/{game_id}/join"
+      body: "*"
+    };
+  }
+
+  // Play a card in a game.
+  rpc PlayCard(PlayCardRequest) returns (PlayCardResponse) {
+    option (google.api.http) = {
+      post: "/v1/games/{game_id}/play"
+      body: "*"
+    };
+  }
+
+  // Stream the state of a game.
+  rpc StreamGameState(StreamGameStateRequest) returns (stream GameState) {
+     option (google.api.http) = {
+      get: "/v1/games/{game_id}/stream"
+    };
+  }
 }
 
-// Request message for creating a new game
+// ---- Messages ----
+
+// Represents a card in the game
+message Card {
+  int32 value = 1;
+}
+
+// Represents one of the four piles
+message Pile {
+  repeated Card cards = 1;
+  bool ascending = 2; // true if 1-99, false if 100-2
+}
+
+// Represents the full state of a game
+message GameState {
+  string game_id = 1;
+  repeated string player_ids = 2;
+  map<string, Hand> hands = 3;
+  map<string, Pile> piles = 4; // e.g., "up1", "up2", "down1", "down2"
+  int32 deck_size = 5;
+  bool is_over = 6;
+  string winner = 7;
+}
+
+// Represents a player's hand
+message Hand {
+    repeated Card cards = 1;
+}
+
+// ---- RPC Requests and Responses ----
+
+// CreateGame
 message CreateGameRequest {
-    string name = 1;
+  string player_id = 1;
 }
 
-// Response message for creating a new game
 message CreateGameResponse {
-    string id = 1;
-    string name = 2;
+  GameState game_state = 1;
+}
+
+// JoinGame
+message JoinGameRequest {
+  string game_id = 1;
+  string player_id = 2;
+}
+
+message JoinGameResponse {
+  bool success = 1;
+  GameState game_state = 2;
+}
+
+// PlayCard
+message PlayCardRequest {
+  string game_id = 1;
+  string player_id = 2;
+  Card card = 3;
+  string pile_id = 4; // e.g., "up1"
+}
+
+message PlayCardResponse {
+  bool success = 1;
+  string message = 2; // e.g., "Invalid move"
+}
+
+// StreamGameState
+message StreamGameStateRequest {
+  string game_id = 1;
 } 

@@ -2,17 +2,17 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v5.29.3
-// source: proto/game.proto
+// source: game.proto
 
 package proto
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -22,17 +22,253 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Request message for creating a new game
+// Represents a card in the game
+type Card struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Value         int32                  `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Card) Reset() {
+	*x = Card{}
+	mi := &file_game_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Card) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Card) ProtoMessage() {}
+
+func (x *Card) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Card.ProtoReflect.Descriptor instead.
+func (*Card) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Card) GetValue() int32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+// Represents one of the four piles
+type Pile struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cards         []*Card                `protobuf:"bytes,1,rep,name=cards,proto3" json:"cards,omitempty"`
+	Ascending     bool                   `protobuf:"varint,2,opt,name=ascending,proto3" json:"ascending,omitempty"` // true if 1-99, false if 100-2
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Pile) Reset() {
+	*x = Pile{}
+	mi := &file_game_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Pile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Pile) ProtoMessage() {}
+
+func (x *Pile) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Pile.ProtoReflect.Descriptor instead.
+func (*Pile) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Pile) GetCards() []*Card {
+	if x != nil {
+		return x.Cards
+	}
+	return nil
+}
+
+func (x *Pile) GetAscending() bool {
+	if x != nil {
+		return x.Ascending
+	}
+	return false
+}
+
+// Represents the full state of a game
+type GameState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	PlayerIds     []string               `protobuf:"bytes,2,rep,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	Hands         map[string]*Hand       `protobuf:"bytes,3,rep,name=hands,proto3" json:"hands,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Piles         map[string]*Pile       `protobuf:"bytes,4,rep,name=piles,proto3" json:"piles,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // e.g., "up1", "up2", "down1", "down2"
+	DeckSize      int32                  `protobuf:"varint,5,opt,name=deck_size,json=deckSize,proto3" json:"deck_size,omitempty"`
+	IsOver        bool                   `protobuf:"varint,6,opt,name=is_over,json=isOver,proto3" json:"is_over,omitempty"`
+	Winner        string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GameState) Reset() {
+	*x = GameState{}
+	mi := &file_game_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GameState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GameState) ProtoMessage() {}
+
+func (x *GameState) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GameState.ProtoReflect.Descriptor instead.
+func (*GameState) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GameState) GetGameId() string {
+	if x != nil {
+		return x.GameId
+	}
+	return ""
+}
+
+func (x *GameState) GetPlayerIds() []string {
+	if x != nil {
+		return x.PlayerIds
+	}
+	return nil
+}
+
+func (x *GameState) GetHands() map[string]*Hand {
+	if x != nil {
+		return x.Hands
+	}
+	return nil
+}
+
+func (x *GameState) GetPiles() map[string]*Pile {
+	if x != nil {
+		return x.Piles
+	}
+	return nil
+}
+
+func (x *GameState) GetDeckSize() int32 {
+	if x != nil {
+		return x.DeckSize
+	}
+	return 0
+}
+
+func (x *GameState) GetIsOver() bool {
+	if x != nil {
+		return x.IsOver
+	}
+	return false
+}
+
+func (x *GameState) GetWinner() string {
+	if x != nil {
+		return x.Winner
+	}
+	return ""
+}
+
+// Represents a player's hand
+type Hand struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Cards         []*Card                `protobuf:"bytes,1,rep,name=cards,proto3" json:"cards,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Hand) Reset() {
+	*x = Hand{}
+	mi := &file_game_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Hand) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Hand) ProtoMessage() {}
+
+func (x *Hand) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Hand.ProtoReflect.Descriptor instead.
+func (*Hand) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Hand) GetCards() []*Card {
+	if x != nil {
+		return x.Cards
+	}
+	return nil
+}
+
+// CreateGame
 type CreateGameRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	PlayerId      string                 `protobuf:"bytes,1,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateGameRequest) Reset() {
 	*x = CreateGameRequest{}
-	mi := &file_proto_game_proto_msgTypes[0]
+	mi := &file_game_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +280,7 @@ func (x *CreateGameRequest) String() string {
 func (*CreateGameRequest) ProtoMessage() {}
 
 func (x *CreateGameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_game_proto_msgTypes[0]
+	mi := &file_game_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,28 +293,26 @@ func (x *CreateGameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGameRequest.ProtoReflect.Descriptor instead.
 func (*CreateGameRequest) Descriptor() ([]byte, []int) {
-	return file_proto_game_proto_rawDescGZIP(), []int{0}
+	return file_game_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *CreateGameRequest) GetName() string {
+func (x *CreateGameRequest) GetPlayerId() string {
 	if x != nil {
-		return x.Name
+		return x.PlayerId
 	}
 	return ""
 }
 
-// Response message for creating a new game
 type CreateGameResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	GameState     *GameState             `protobuf:"bytes,1,opt,name=game_state,json=gameState,proto3" json:"game_state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateGameResponse) Reset() {
 	*x = CreateGameResponse{}
-	mi := &file_proto_game_proto_msgTypes[1]
+	mi := &file_game_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -90,7 +324,7 @@ func (x *CreateGameResponse) String() string {
 func (*CreateGameResponse) ProtoMessage() {}
 
 func (x *CreateGameResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_game_proto_msgTypes[1]
+	mi := &file_game_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -103,84 +337,424 @@ func (x *CreateGameResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGameResponse.ProtoReflect.Descriptor instead.
 func (*CreateGameResponse) Descriptor() ([]byte, []int) {
-	return file_proto_game_proto_rawDescGZIP(), []int{1}
+	return file_game_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CreateGameResponse) GetId() string {
+func (x *CreateGameResponse) GetGameState() *GameState {
 	if x != nil {
-		return x.Id
+		return x.GameState
+	}
+	return nil
+}
+
+// JoinGame
+type JoinGameRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	PlayerId      string                 `protobuf:"bytes,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JoinGameRequest) Reset() {
+	*x = JoinGameRequest{}
+	mi := &file_game_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinGameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinGameRequest) ProtoMessage() {}
+
+func (x *JoinGameRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinGameRequest.ProtoReflect.Descriptor instead.
+func (*JoinGameRequest) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *JoinGameRequest) GetGameId() string {
+	if x != nil {
+		return x.GameId
 	}
 	return ""
 }
 
-func (x *CreateGameResponse) GetName() string {
+func (x *JoinGameRequest) GetPlayerId() string {
 	if x != nil {
-		return x.Name
+		return x.PlayerId
 	}
 	return ""
 }
 
-var File_proto_game_proto protoreflect.FileDescriptor
+type JoinGameResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	GameState     *GameState             `protobuf:"bytes,2,opt,name=game_state,json=gameState,proto3" json:"game_state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_proto_game_proto_rawDesc = "" +
+func (x *JoinGameResponse) Reset() {
+	*x = JoinGameResponse{}
+	mi := &file_game_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JoinGameResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JoinGameResponse) ProtoMessage() {}
+
+func (x *JoinGameResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JoinGameResponse.ProtoReflect.Descriptor instead.
+func (*JoinGameResponse) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *JoinGameResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *JoinGameResponse) GetGameState() *GameState {
+	if x != nil {
+		return x.GameState
+	}
+	return nil
+}
+
+// PlayCard
+type PlayCardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	PlayerId      string                 `protobuf:"bytes,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	Card          *Card                  `protobuf:"bytes,3,opt,name=card,proto3" json:"card,omitempty"`
+	PileId        string                 `protobuf:"bytes,4,opt,name=pile_id,json=pileId,proto3" json:"pile_id,omitempty"` // e.g., "up1"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayCardRequest) Reset() {
+	*x = PlayCardRequest{}
+	mi := &file_game_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayCardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayCardRequest) ProtoMessage() {}
+
+func (x *PlayCardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayCardRequest.ProtoReflect.Descriptor instead.
+func (*PlayCardRequest) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *PlayCardRequest) GetGameId() string {
+	if x != nil {
+		return x.GameId
+	}
+	return ""
+}
+
+func (x *PlayCardRequest) GetPlayerId() string {
+	if x != nil {
+		return x.PlayerId
+	}
+	return ""
+}
+
+func (x *PlayCardRequest) GetCard() *Card {
+	if x != nil {
+		return x.Card
+	}
+	return nil
+}
+
+func (x *PlayCardRequest) GetPileId() string {
+	if x != nil {
+		return x.PileId
+	}
+	return ""
+}
+
+type PlayCardResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"` // e.g., "Invalid move"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PlayCardResponse) Reset() {
+	*x = PlayCardResponse{}
+	mi := &file_game_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlayCardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlayCardResponse) ProtoMessage() {}
+
+func (x *PlayCardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlayCardResponse.ProtoReflect.Descriptor instead.
+func (*PlayCardResponse) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PlayCardResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PlayCardResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// StreamGameState
+type StreamGameStateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamGameStateRequest) Reset() {
+	*x = StreamGameStateRequest{}
+	mi := &file_game_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamGameStateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamGameStateRequest) ProtoMessage() {}
+
+func (x *StreamGameStateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamGameStateRequest.ProtoReflect.Descriptor instead.
+func (*StreamGameStateRequest) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *StreamGameStateRequest) GetGameId() string {
+	if x != nil {
+		return x.GameId
+	}
+	return ""
+}
+
+var File_game_proto protoreflect.FileDescriptor
+
+const file_game_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/game.proto\x12\x05proto\"'\n" +
-	"\x11CreateGameRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"8\n" +
-	"\x12CreateGameResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name2P\n" +
-	"\vGameService\x12A\n" +
 	"\n" +
-	"CreateGame\x12\x18.proto.CreateGameRequest\x1a\x19.proto.CreateGameResponseB\x1aZ\x18the_game_card_game/protob\x06proto3"
+	"game.proto\x12\x04game\x1a\x1cgoogle/api/annotations.proto\"\x1c\n" +
+	"\x04Card\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\x05R\x05value\"F\n" +
+	"\x04Pile\x12 \n" +
+	"\x05cards\x18\x01 \x03(\v2\n" +
+	".game.CardR\x05cards\x12\x1c\n" +
+	"\tascending\x18\x02 \x01(\bR\tascending\"\x81\x03\n" +
+	"\tGameState\x12\x17\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1d\n" +
+	"\n" +
+	"player_ids\x18\x02 \x03(\tR\tplayerIds\x120\n" +
+	"\x05hands\x18\x03 \x03(\v2\x1a.game.GameState.HandsEntryR\x05hands\x120\n" +
+	"\x05piles\x18\x04 \x03(\v2\x1a.game.GameState.PilesEntryR\x05piles\x12\x1b\n" +
+	"\tdeck_size\x18\x05 \x01(\x05R\bdeckSize\x12\x17\n" +
+	"\ais_over\x18\x06 \x01(\bR\x06isOver\x12\x16\n" +
+	"\x06winner\x18\a \x01(\tR\x06winner\x1aD\n" +
+	"\n" +
+	"HandsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +
+	"\x05value\x18\x02 \x01(\v2\n" +
+	".game.HandR\x05value:\x028\x01\x1aD\n" +
+	"\n" +
+	"PilesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +
+	"\x05value\x18\x02 \x01(\v2\n" +
+	".game.PileR\x05value:\x028\x01\"(\n" +
+	"\x04Hand\x12 \n" +
+	"\x05cards\x18\x01 \x03(\v2\n" +
+	".game.CardR\x05cards\"0\n" +
+	"\x11CreateGameRequest\x12\x1b\n" +
+	"\tplayer_id\x18\x01 \x01(\tR\bplayerId\"D\n" +
+	"\x12CreateGameResponse\x12.\n" +
+	"\n" +
+	"game_state\x18\x01 \x01(\v2\x0f.game.GameStateR\tgameState\"G\n" +
+	"\x0fJoinGameRequest\x12\x17\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\tR\bplayerId\"\\\n" +
+	"\x10JoinGameResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12.\n" +
+	"\n" +
+	"game_state\x18\x02 \x01(\v2\x0f.game.GameStateR\tgameState\"\x80\x01\n" +
+	"\x0fPlayCardRequest\x12\x17\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\tR\bplayerId\x12\x1e\n" +
+	"\x04card\x18\x03 \x01(\v2\n" +
+	".game.CardR\x04card\x12\x17\n" +
+	"\apile_id\x18\x04 \x01(\tR\x06pileId\"F\n" +
+	"\x10PlayCardResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"1\n" +
+	"\x16StreamGameStateRequest\x12\x17\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId2\x8c\x03\n" +
+	"\vGameService\x12U\n" +
+	"\n" +
+	"CreateGame\x12\x17.game.CreateGameRequest\x1a\x18.game.CreateGameResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/games\x12^\n" +
+	"\bJoinGame\x12\x15.game.JoinGameRequest\x1a\x16.game.JoinGameResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/games/{game_id}/join\x12^\n" +
+	"\bPlayCard\x12\x15.game.PlayCardRequest\x1a\x16.game.PlayCardResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/games/{game_id}/play\x12f\n" +
+	"\x0fStreamGameState\x12\x1c.game.StreamGameStateRequest\x1a\x0f.game.GameState\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/games/{game_id}/stream0\x01B1Z/github.com/nico-araujo/the-game-card-game/protob\x06proto3"
 
 var (
-	file_proto_game_proto_rawDescOnce sync.Once
-	file_proto_game_proto_rawDescData []byte
+	file_game_proto_rawDescOnce sync.Once
+	file_game_proto_rawDescData []byte
 )
 
-func file_proto_game_proto_rawDescGZIP() []byte {
-	file_proto_game_proto_rawDescOnce.Do(func() {
-		file_proto_game_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_game_proto_rawDesc), len(file_proto_game_proto_rawDesc)))
+func file_game_proto_rawDescGZIP() []byte {
+	file_game_proto_rawDescOnce.Do(func() {
+		file_game_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_game_proto_rawDesc), len(file_game_proto_rawDesc)))
 	})
-	return file_proto_game_proto_rawDescData
+	return file_game_proto_rawDescData
 }
 
-var file_proto_game_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_proto_game_proto_goTypes = []any{
-	(*CreateGameRequest)(nil),  // 0: proto.CreateGameRequest
-	(*CreateGameResponse)(nil), // 1: proto.CreateGameResponse
+var file_game_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_game_proto_goTypes = []any{
+	(*Card)(nil),                   // 0: game.Card
+	(*Pile)(nil),                   // 1: game.Pile
+	(*GameState)(nil),              // 2: game.GameState
+	(*Hand)(nil),                   // 3: game.Hand
+	(*CreateGameRequest)(nil),      // 4: game.CreateGameRequest
+	(*CreateGameResponse)(nil),     // 5: game.CreateGameResponse
+	(*JoinGameRequest)(nil),        // 6: game.JoinGameRequest
+	(*JoinGameResponse)(nil),       // 7: game.JoinGameResponse
+	(*PlayCardRequest)(nil),        // 8: game.PlayCardRequest
+	(*PlayCardResponse)(nil),       // 9: game.PlayCardResponse
+	(*StreamGameStateRequest)(nil), // 10: game.StreamGameStateRequest
+	nil,                            // 11: game.GameState.HandsEntry
+	nil,                            // 12: game.GameState.PilesEntry
 }
-var file_proto_game_proto_depIdxs = []int32{
-	0, // 0: proto.GameService.CreateGame:input_type -> proto.CreateGameRequest
-	1, // 1: proto.GameService.CreateGame:output_type -> proto.CreateGameResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_game_proto_depIdxs = []int32{
+	0,  // 0: game.Pile.cards:type_name -> game.Card
+	11, // 1: game.GameState.hands:type_name -> game.GameState.HandsEntry
+	12, // 2: game.GameState.piles:type_name -> game.GameState.PilesEntry
+	0,  // 3: game.Hand.cards:type_name -> game.Card
+	2,  // 4: game.CreateGameResponse.game_state:type_name -> game.GameState
+	2,  // 5: game.JoinGameResponse.game_state:type_name -> game.GameState
+	0,  // 6: game.PlayCardRequest.card:type_name -> game.Card
+	3,  // 7: game.GameState.HandsEntry.value:type_name -> game.Hand
+	1,  // 8: game.GameState.PilesEntry.value:type_name -> game.Pile
+	4,  // 9: game.GameService.CreateGame:input_type -> game.CreateGameRequest
+	6,  // 10: game.GameService.JoinGame:input_type -> game.JoinGameRequest
+	8,  // 11: game.GameService.PlayCard:input_type -> game.PlayCardRequest
+	10, // 12: game.GameService.StreamGameState:input_type -> game.StreamGameStateRequest
+	5,  // 13: game.GameService.CreateGame:output_type -> game.CreateGameResponse
+	7,  // 14: game.GameService.JoinGame:output_type -> game.JoinGameResponse
+	9,  // 15: game.GameService.PlayCard:output_type -> game.PlayCardResponse
+	2,  // 16: game.GameService.StreamGameState:output_type -> game.GameState
+	13, // [13:17] is the sub-list for method output_type
+	9,  // [9:13] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
-func init() { file_proto_game_proto_init() }
-func file_proto_game_proto_init() {
-	if File_proto_game_proto != nil {
+func init() { file_game_proto_init() }
+func file_game_proto_init() {
+	if File_game_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_game_proto_rawDesc), len(file_proto_game_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_game_proto_rawDesc), len(file_game_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_game_proto_goTypes,
-		DependencyIndexes: file_proto_game_proto_depIdxs,
-		MessageInfos:      file_proto_game_proto_msgTypes,
+		GoTypes:           file_game_proto_goTypes,
+		DependencyIndexes: file_game_proto_depIdxs,
+		MessageInfos:      file_game_proto_msgTypes,
 	}.Build()
-	File_proto_game_proto = out.File
-	file_proto_game_proto_goTypes = nil
-	file_proto_game_proto_depIdxs = nil
+	File_game_proto = out.File
+	file_game_proto_goTypes = nil
+	file_game_proto_depIdxs = nil
 }

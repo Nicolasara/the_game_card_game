@@ -12,9 +12,14 @@ type Server struct {
 }
 
 func (s *Server) CreateGame(ctx context.Context, req *pb.CreateGameRequest) (*pb.CreateGameResponse, error) {
-	log.Printf("CreateGame request received: %v", req)
+	log.Printf("CreateGame request received for player: %s", req.GetPlayerId())
+
+	// TODO: Implement actual game creation logic here.
+	// For now, return a placeholder response.
 	return &pb.CreateGameResponse{
-		Id:   "some-uuid",
-		Name: req.GetName(),
+		GameState: &pb.GameState{
+			GameId:    "new-game-123",
+			PlayerIds: []string{req.GetPlayerId()},
+		},
 	}, nil
 }

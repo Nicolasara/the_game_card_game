@@ -8,11 +8,10 @@ import (
 	pb "the_game_card_game/proto"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -22,9 +21,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := c.CreateGame(ctx, &pb.CreateGameRequest{Name: "My New Game"})
+	r, err := c.CreateGame(ctx, &pb.CreateGameRequest{PlayerId: "Nico"})
 	if err != nil {
 		log.Fatalf("could not create game: %v", err)
 	}
-	log.Printf("Game created with ID: %s and Name: %s", r.GetId(), r.GetName())
+	log.Printf("Game created with ID: %s", r.GetGameState().GetGameId())
 } 

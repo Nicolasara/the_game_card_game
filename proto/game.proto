@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "the_game_card_game/proto";
+
+service GameService {
+    // Defines a method to create a new game
+    rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+}
+
+// Request message for creating a new game
+message CreateGameRequest {
+    string name = 1;
+}
+
+// Response message for creating a new game
+message CreateGameResponse {
+    string id = 1;
+    string name = 2;
+} 

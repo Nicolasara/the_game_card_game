@@ -130,6 +130,7 @@ type GameState struct {
 	DeckSize      int32                  `protobuf:"varint,5,opt,name=deck_size,json=deckSize,proto3" json:"deck_size,omitempty"`
 	IsOver        bool                   `protobuf:"varint,6,opt,name=is_over,json=isOver,proto3" json:"is_over,omitempty"`
 	Winner        string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
+	Deck          []*Card                `protobuf:"bytes,8,rep,name=deck,proto3" json:"deck,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -211,6 +212,13 @@ func (x *GameState) GetWinner() string {
 		return x.Winner
 	}
 	return ""
+}
+
+func (x *GameState) GetDeck() []*Card {
+	if x != nil {
+		return x.Deck
+	}
+	return nil
 }
 
 // Represents a player's hand
@@ -629,7 +637,7 @@ const file_game_proto_rawDesc = "" +
 	"\x04Pile\x12 \n" +
 	"\x05cards\x18\x01 \x03(\v2\n" +
 	".game.CardR\x05cards\x12\x1c\n" +
-	"\tascending\x18\x02 \x01(\bR\tascending\"\x81\x03\n" +
+	"\tascending\x18\x02 \x01(\bR\tascending\"\xa1\x03\n" +
 	"\tGameState\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1d\n" +
 	"\n" +
@@ -638,7 +646,9 @@ const file_game_proto_rawDesc = "" +
 	"\x05piles\x18\x04 \x03(\v2\x1a.game.GameState.PilesEntryR\x05piles\x12\x1b\n" +
 	"\tdeck_size\x18\x05 \x01(\x05R\bdeckSize\x12\x17\n" +
 	"\ais_over\x18\x06 \x01(\bR\x06isOver\x12\x16\n" +
-	"\x06winner\x18\a \x01(\tR\x06winner\x1aD\n" +
+	"\x06winner\x18\a \x01(\tR\x06winner\x12\x1e\n" +
+	"\x04deck\x18\b \x03(\v2\n" +
+	".game.CardR\x04deck\x1aD\n" +
 	"\n" +
 	"HandsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +
@@ -714,25 +724,26 @@ var file_game_proto_depIdxs = []int32{
 	0,  // 0: game.Pile.cards:type_name -> game.Card
 	11, // 1: game.GameState.hands:type_name -> game.GameState.HandsEntry
 	12, // 2: game.GameState.piles:type_name -> game.GameState.PilesEntry
-	0,  // 3: game.Hand.cards:type_name -> game.Card
-	2,  // 4: game.CreateGameResponse.game_state:type_name -> game.GameState
-	2,  // 5: game.JoinGameResponse.game_state:type_name -> game.GameState
-	0,  // 6: game.PlayCardRequest.card:type_name -> game.Card
-	3,  // 7: game.GameState.HandsEntry.value:type_name -> game.Hand
-	1,  // 8: game.GameState.PilesEntry.value:type_name -> game.Pile
-	4,  // 9: game.GameService.CreateGame:input_type -> game.CreateGameRequest
-	6,  // 10: game.GameService.JoinGame:input_type -> game.JoinGameRequest
-	8,  // 11: game.GameService.PlayCard:input_type -> game.PlayCardRequest
-	10, // 12: game.GameService.StreamGameState:input_type -> game.StreamGameStateRequest
-	5,  // 13: game.GameService.CreateGame:output_type -> game.CreateGameResponse
-	7,  // 14: game.GameService.JoinGame:output_type -> game.JoinGameResponse
-	9,  // 15: game.GameService.PlayCard:output_type -> game.PlayCardResponse
-	2,  // 16: game.GameService.StreamGameState:output_type -> game.GameState
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	0,  // 3: game.GameState.deck:type_name -> game.Card
+	0,  // 4: game.Hand.cards:type_name -> game.Card
+	2,  // 5: game.CreateGameResponse.game_state:type_name -> game.GameState
+	2,  // 6: game.JoinGameResponse.game_state:type_name -> game.GameState
+	0,  // 7: game.PlayCardRequest.card:type_name -> game.Card
+	3,  // 8: game.GameState.HandsEntry.value:type_name -> game.Hand
+	1,  // 9: game.GameState.PilesEntry.value:type_name -> game.Pile
+	4,  // 10: game.GameService.CreateGame:input_type -> game.CreateGameRequest
+	6,  // 11: game.GameService.JoinGame:input_type -> game.JoinGameRequest
+	8,  // 12: game.GameService.PlayCard:input_type -> game.PlayCardRequest
+	10, // 13: game.GameService.StreamGameState:input_type -> game.StreamGameStateRequest
+	5,  // 14: game.GameService.CreateGame:output_type -> game.CreateGameResponse
+	7,  // 15: game.GameService.JoinGame:output_type -> game.JoinGameResponse
+	9,  // 16: game.GameService.PlayCard:output_type -> game.PlayCardResponse
+	2,  // 17: game.GameService.StreamGameState:output_type -> game.GameState
+	14, // [14:18] is the sub-list for method output_type
+	10, // [10:14] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_game_proto_init() }

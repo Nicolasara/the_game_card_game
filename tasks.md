@@ -30,23 +30,40 @@ This document outlines the development tasks required to build "The Game" accord
   - [x] Define functions for all database interactions (e.g., `CreateGame`, `GetGameState`, `UpdateGameState`, `SaveMove`).
   - [x] Test database connections with seed data.
 
-- [ ] **2. Game Server Implementation:**
-  - [ ] Update `pkg/server/server.go` to implement the full `GameService` gRPC interface.
-  - [ ] **CreateGame:**
-    - Generate a unique game ID.
-    - Initialize the game state (deck, piles) and store it in Redis.
-    - Create a corresponding entry in the PostgreSQL `games` table.
-  - [ ] **JoinGame:**
-    - Add a player to an existing game.
-  - [ ] **PlayCard:**
-    - Fetch game state from Redis.
-    - Validate the move against the game rules.
-    - Update the game state in Redis.
-    - Send a response back to the client immediately.
-    - Asynchronously write the move details to the PostgreSQL `moves` table.
-  - [ ] **StreamGameState:**
-    - Implement a mechanism (e.g., Redis Pub/Sub) to publish game state changes.
-    - Subscribe to these changes and stream them to connected clients.
+- [x] **2. Game Server Implementation:**
+
+  - [x] Update `pkg/server/server.go` to implement the full `GameService` gRPC interface.
+  - [x] **CreateGame:**
+    - [x] Generate a unique game ID.
+    - [x] Initialize the game state (deck, piles) and store it in Redis.
+    - [x] Create a corresponding entry in the PostgreSQL `games` table.
+  - [x] **JoinGame:**
+    - [x] Add a player to an existing game.
+  - [x] **PlayCard:**
+    - [x] Fetch game state from Redis.
+    - [x] Validate the move against the game rules.
+    - [x] Update the game state in Redis.
+    - [x] Send a response back to the client immediately.
+    - [x] Asynchronously write the move details to the PostgreSQL `moves` table.
+  - [x] **StreamGameState:**
+    - [x] Implement a mechanism (e.g., Redis Pub/Sub) to publish game state changes.
+    - [x] Subscribe to these changes and stream them to connected clients.
+
+- [ ] **3. Unit Tests for Server Logic:**
+  - [ ] Set up a test suite for the `server` package with a real storage backend.
+  - [ ] **Test CreateGame:**
+    - [ ] Verify that a new game is created in both PostgreSQL and Redis.
+    - [ ] Check that the initial game state (deck, piles, hand) is correct.
+  - [ ] **Test JoinGame:**
+    - [ ] Verify that a second player can join a game.
+    - [ ] Check that the new player is dealt a hand and the deck size decreases.
+  - [ ] **Test PlayCard:**
+    - [ ] Test a valid card play and verify the state update.
+    - [ ] Test an invalid card play (e.g., wrong value for a pile) and verify the error.
+    - [ ] Test the "10-back" rule.
+  - [ ] **Test StreamGameState:**
+    - [ ] Verify that a client receives the initial state upon connecting.
+    - [ ] Verify that a client receives an updated state after a card is played.
 
 ## Phase 3: Application Assembly & Finalization
 

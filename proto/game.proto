@@ -62,6 +62,7 @@ message GameState {
   int32 deck_size = 5;
   bool is_over = 6;
   string winner = 7;
+  repeated Card deck = 8;
 }
 
 // Represents a player's hand

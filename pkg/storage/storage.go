@@ -97,4 +97,19 @@ func (s *Store) UpdateGameState(ctx context.Context, gameID string, state *pb.Ga
 func (s *Store) SaveMove(ctx context.Context, gameID string, playerID string, card int, pileID string) error {
 	// TODO: Implement logic to save a move to PostgreSQL
 	return nil
+}
+
+// --- Pub/Sub ---
+
+// PublishGameUpdate sends a notification to a game's channel that it has been updated.
+func (s *Store) PublishGameUpdate(ctx context.Context, gameID string) error {
+	channel := fmt.Sprintf("game-updates:%s", gameID)
+	// The message can be simple, its presence is the notification.
+	return s.Redis.Publish(ctx, channel, "update").Err()
+}
+
+// SubscribeToGameUpdates subscribes to a game's update channel.
+func (s *Store) SubscribeToGameUpdates(ctx context.Context, gameID string) *redis.PubSub {
+	channel := fmt.Sprintf("game-updates:%s", gameID)
+	return s.Redis.Subscribe(ctx, channel)
 } 

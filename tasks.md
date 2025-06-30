@@ -28,7 +28,7 @@ This document outlines the development tasks required to build "The Game" accord
   - [x] Create a new `pkg/storage` package.
   - [x] Implement connection logic for both Redis and PostgreSQL in `pkg/storage`.
   - [x] Define functions for all database interactions (e.g., `CreateGame`, `GetGameState`, `UpdateGameState`, `SaveMove`).
-  - [ ] Test database connections with seed data.
+  - [x] Test database connections with seed data.
 
 - [ ] **2. Game Server Implementation:**
   - [ ] Update `pkg/server/server.go` to implement the full `GameService` gRPC interface.

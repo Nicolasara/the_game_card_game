@@ -10,7 +10,19 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Store holds the clients for our databases.
+// Storer defines the interface for all database operations.
+type Storer interface {
+	CreateGame(ctx context.Context, gameID string, playerID string) error
+	GetGameForTest(ctx context.Context, gameID string) (bool, error)
+	GetGameState(ctx context.Context, gameID string) (*pb.GameState, error)
+	UpdateGameState(ctx context.Context, gameID string, state *pb.GameState) error
+	SaveMove(ctx context.Context, gameID string, playerID string, card int, pileID string) error
+	PublishGameUpdate(ctx context.Context, gameID string) error
+	SubscribeToGameUpdates(ctx context.Context, gameID string) (<-chan *redis.Message, func(), error)
+	Close()
+}
+
+// Store holds the clients for our databases. It implements the Storer interface.
 type Store struct {
 	Redis *redis.Client
 	DB    *pgxpool.Pool
@@ -109,7 +121,21 @@ func (s *Store) PublishGameUpdate(ctx context.Context, gameID string) error {
 }
 
 // SubscribeToGameUpdates subscribes to a game's update channel.
-func (s *Store) SubscribeToGameUpdates(ctx context.Context, gameID string) *redis.PubSub {
+// It returns a channel for messages, a function to close the subscription, and an error.
+func (s *Store) SubscribeToGameUpdates(ctx context.Context, gameID string) (<-chan *redis.Message, func(), error) {
 	channel := fmt.Sprintf("game-updates:%s", gameID)
-	return s.Redis.Subscribe(ctx, channel)
+	pubsub := s.Redis.Subscribe(ctx, channel)
+
+	// Wait for subscription to be confirmed.
+	_, err := pubsub.Receive(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to subscribe to game updates: %w", err)
+	}
+
+	ch := pubsub.Channel()
+	closeFunc := func() {
+		pubsub.Close()
+	}
+
+	return ch, closeFunc, nil
 } 

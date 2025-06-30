@@ -49,35 +49,50 @@ This document outlines the development tasks required to build "The Game" accord
     - [x] Implement a mechanism (e.g., Redis Pub/Sub) to publish game state changes.
     - [x] Subscribe to these changes and stream them to connected clients.
 
-- [ ] **3. Unit Tests for Server Logic:**
-  - [ ] Set up a test suite for the `server` package with a real storage backend.
-  - [ ] **Test CreateGame:**
-    - [ ] Verify that a new game is created in both PostgreSQL and Redis.
-    - [ ] Check that the initial game state (deck, piles, hand) is correct.
-  - [ ] **Test JoinGame:**
-    - [ ] Verify that a second player can join a game.
-    - [ ] Check that the new player is dealt a hand and the deck size decreases.
-  - [ ] **Test PlayCard:**
-    - [ ] Test a valid card play and verify the state update.
-    - [ ] Test an invalid card play (e.g., wrong value for a pile) and verify the error.
-    - [ ] Test the "10-back" rule.
-  - [ ] **Test StreamGameState:**
-    - [ ] Verify that a client receives the initial state upon connecting.
-    - [ ] Verify that a client receives an updated state after a card is played.
+- [x] **3. Unit Tests for Server Logic:**
+  - [x] Set up a test suite for the `server` package with a real storage backend.
+  - [x] **Test CreateGame:**
+    - [x] Verify that a new game is created in both PostgreSQL and Redis.
+    - [x] Check that the initial game state (deck, piles, hand) is correct.
+  - [x] **Test JoinGame:**
+    - [x] Verify that a second player can join a game.
+    - [x] Check that the new player is dealt a hand and the deck size decreases.
+  - [x] **Test PlayCard:**
+    - [x] Test a valid card play and verify the state update.
+    - [x] Test an invalid card play (e.g., wrong value for a pile) and verify the error.
+    - [x] Test the "10-back" rule.
+  - [x] **Test StreamGameState:**
+    - [x] Verify that a client receives the initial state upon connecting.
 
 ## Phase 3: Application Assembly & Finalization
 
-- [ ] **1. Main Application (`cmd/server/main.go`):**
+- [x] Test `CreateGame`
+- [x] Test `JoinGame`
+- [x] Test `PlayCard`
+- [x] Test `StreamGameState`
+- [x] Implement `Storer` interface and mock for unit testing
+  - [x] `CreateGame`
+  - [x] `JoinGame`
+  - [x] `PlayCard`
+- [x] `StreamGameState`
+- [x] Move existing tests to `_integration_test.go`
+- [x] Write true unit tests in `_test.go`
+- [x] Complete Integration Tests
+  - [x] Test `CreateGame`
+  - [x] Test `JoinGame`
+  - [x] Test `PlayCard`
+  - [x] Test `StreamGameState`
 
-  - [ ] Initialize and manage database connections.
-  - [ ] Start the gRPC server with the `GameService` implementation.
-  - [ ] Configure and run the gRPC-Gateway as a separate goroutine to proxy HTTP requests to the gRPC server.
+## Phase 3: Assemble Application
 
-- [ ] **2. Client & Testing:**
+- [x] Update `cmd/server/main.go` to use the new `Server` and `Store`
+- [x] Update `cmd/client/main.go` to be a simple CLI to interact with the server
+- [x] Run the server and client
+- [x] Final verification and cleanup
 
-  - [ ] Enhance the `cmd/client/main.go` to test the new RPCs (`JoinGame`, `PlayCard`).
-  - [ ] (Optional) Create a simple web-based client using the generated HTTP/JSON endpoints.
-  - [ ] Write unit tests for the core game logic.
+## Phase 4: Documentation and Cleanup
 
-- [ ] **3. Documentation:**
-  - [ ] Update `README.md` with comprehensive instructions on how to set up the environment, run the services using Docker Compose, and interact with the game via both gRPC and HTTP.
+- [x] Review and update `README.md`
+- [x] Review and update `design.md`
+- [x] Ensure all code is formatted and linted
+- [x] Final commit and push

@@ -13,10 +13,10 @@ import (
 
 type Server struct {
 	pb.UnimplementedGameServiceServer
-	store *storage.Store
+	store storage.Storer
 }
 
-func NewServer(store *storage.Store) *Server {
+func NewServer(store storage.Storer) *Server {
 	return &Server{store: store}
 }
 
@@ -119,7 +119,16 @@ func (s *Server) StreamGameState(req *pb.StreamGameStateRequest, stream pb.GameS
 	log.Printf("StreamGameState request received for game %s", req.GetGameId())
 	ctx := stream.Context()
 
-	// Immediately send the current state
+	// Subscribe to updates first to avoid race conditions.
+	ch, closeSub, err := s.store.SubscribeToGameUpdates(ctx, req.GetGameId())
+	if err != nil {
+		log.Printf("failed to subscribe to game updates: %v", err)
+		return err
+	}
+	defer closeSub()
+
+	// After subscribing, get and send the current state.
+	// This ensures we don't miss an update that happens between the initial get and the subscribe.
 	initialState, err := s.store.GetGameState(ctx, req.GetGameId())
 	if err != nil {
 		return err
@@ -128,23 +137,17 @@ func (s *Server) StreamGameState(req *pb.StreamGameStateRequest, stream pb.GameS
 		return err
 	}
 
-	// Subscribe to future updates
-	pubsub := s.store.SubscribeToGameUpdates(ctx, req.GetGameId())
-	defer pubsub.Close()
-
-	ch := pubsub.Channel()
-
 	for {
 		select {
 		case <-ctx.Done():
 			log.Printf("Client for game %s disconnected", req.GetGameId())
 			return nil
-		case <-ch:
-			log.Printf("Received update for game %s, sending new state", req.GetGameId())
+		case msg := <-ch:
+			// The message content doesn't matter, its arrival is the signal.
+			log.Printf("Received update for game %s via channel %s, sending new state", req.GetGameId(), msg.Channel)
 			newState, err := s.store.GetGameState(ctx, req.GetGameId())
 			if err != nil {
 				log.Printf("Error getting new state for game %s: %v", req.GetGameId(), err)
-				// Decide if we should continue or terminate
 				continue
 			}
 			if err := stream.Send(newState); err != nil {

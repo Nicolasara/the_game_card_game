@@ -6,6 +6,8 @@ import (
 	"time"
 
 	pb "the_game_card_game/proto"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // NewGame initializes a new game state.
@@ -17,12 +19,12 @@ func NewGame(gameID string, playerID string) *pb.GameState {
 	remainingDeck := deck[handSize:]
 
 	return &pb.GameState{
-		GameId:                 gameID,
-		PlayerIds:              []string{playerID},
-		DeckSize:               int32(len(remainingDeck)),
-		Deck:                   remainingDeck,
-		CurrentTurnPlayerId:    playerID, // First player starts
-		CardsPlayedThisTurn:    0,
+		GameId:              gameID,
+		PlayerIds:           []string{playerID},
+		DeckSize:            int32(len(remainingDeck)),
+		Deck:                remainingDeck,
+		CurrentTurnPlayerId: playerID, // First player starts
+		CardsPlayedThisTurn: 0,
 		Piles: map[string]*pb.Pile{
 			"up1":   {Ascending: true, Cards: []*pb.Card{{Value: 1}}},
 			"up2":   {Ascending: true, Cards: []*pb.Card{{Value: 1}}},
@@ -63,7 +65,9 @@ func AddPlayer(state *pb.GameState, playerID string, handSize int) (*pb.GameStat
 
 // PlayCard validates a move, updates the game state, and increments the turn's card counter.
 func PlayCard(state *pb.GameState, playerID string, cardValue int32, pileID string) (*pb.GameState, error) {
-	pile, ok := state.Piles[pileID]
+	newState := proto.Clone(state).(*pb.GameState)
+
+	pile, ok := newState.Piles[pileID]
 	if !ok {
 		return nil, fmt.Errorf("pile '%s' not found", pileID)
 	}
@@ -75,7 +79,7 @@ func PlayCard(state *pb.GameState, playerID string, cardValue int32, pileID stri
 		return nil, fmt.Errorf("invalid move: card %d on pile %s (top: %d)", cardValue, pileID, topCard.Value)
 	}
 
-	playerHand, ok := state.Hands[playerID]
+	playerHand, ok := newState.Hands[playerID]
 	if !ok {
 		return nil, fmt.Errorf("player '%s' not found", playerID)
 	}
@@ -93,8 +97,43 @@ func PlayCard(state *pb.GameState, playerID string, cardValue int32, pileID stri
 	playedCard := playerHand.Cards[cardIndex]
 	playerHand.Cards = append(playerHand.Cards[:cardIndex], playerHand.Cards[cardIndex+1:]...)
 	pile.Cards = append(pile.Cards, playedCard)
-	state.CardsPlayedThisTurn++
-	return state, nil
+	newState.CardsPlayedThisTurn++
+
+	// After playing, check if the game is lost
+	if newState.CardsPlayedThisTurn < 2 && len(playerHand.Cards) > 0 {
+		if !isMovePossible(playerHand, newState.Piles) {
+			newState.GameOver = true
+			newState.Message = fmt.Sprintf("Player %s lost: No more valid moves.", playerID)
+		}
+	}
+
+	return newState, nil
+}
+
+// isMovePossible checks if any card in the hand can be legally played on any pile.
+func isMovePossible(hand *pb.Hand, piles map[string]*pb.Pile) bool {
+	for _, card := range hand.Cards {
+		for _, pile := range piles {
+			topCard := pile.Cards[len(pile.Cards)-1]
+
+			// Check normal play rule
+			if pile.Ascending && card.Value > topCard.Value {
+				return true
+			}
+			if !pile.Ascending && card.Value < topCard.Value {
+				return true
+			}
+
+			// Check "10-rule"
+			if pile.Ascending && card.Value == topCard.Value-10 {
+				return true
+			}
+			if !pile.Ascending && card.Value == topCard.Value+10 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // EndTurn replenishes the player's hand, resets the turn counter, and advances to the next player.
@@ -106,7 +145,7 @@ func EndTurn(state *pb.GameState, playerID string) (*pb.GameState, error) {
 		if !ok {
 			return nil, fmt.Errorf("player '%s' not found", playerID)
 		}
-		
+
 		drawCount := 0
 		if len(state.Deck) < numToDraw {
 			drawCount = len(state.Deck)

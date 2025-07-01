@@ -34,6 +34,8 @@ type model struct {
 	selectedPile   int // 0: up1, 1: up2, 2: down1, 3: down2
 	status         string
 	err            error
+	gameOver       bool
+	gameOverMessage string
 }
 
 var pileIDs = []string{"up1", "up2", "down1", "down2"}
@@ -59,6 +61,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case stateUpdateMsg:
 		m.state = msg
+
+		if m.state.GameOver {
+			m.gameOver = true
+			m.gameOverMessage = m.state.Message
+			return m, nil
+		}
+
 		if hand, ok := m.state.Hands[m.playerID]; ok {
 			m.hand = make([]int32, len(hand.Cards))
 			for i, c := range hand.Cards {
@@ -80,6 +89,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case tea.KeyMsg:
+		// If game is over, any key quits.
+		if m.gameOver {
+			return m, tea.Quit
+		}
 		return handleKeyPress(m, msg)
 	}
 	return m, nil
@@ -184,8 +197,15 @@ var (
 )
 
 func (m model) View() string {
-	if m.err != nil { return fmt.Sprintf("Error: %v\n", m.err) }
-	if m.state == nil { return "Connecting to game..." }
+	if m.err != nil {
+		return fmt.Sprintf("Error: %v\n", m.err)
+	}
+	if m.gameOver {
+		return fmt.Sprintf("\n%s\n\nPress any key to quit.\n", m.gameOverMessage)
+	}
+	if m.state == nil {
+		return "Connecting to game..."
+	}
 
 	// Piles View
 	var pileViews []string

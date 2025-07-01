@@ -73,6 +73,8 @@ message GameState {
   repeated Card deck = 8;
   string current_turn_player_id = 9;
   int32 cards_played_this_turn = 10;
+  bool game_over = 11;
+  string message = 12;
 }
 
 // Represents a player's hand

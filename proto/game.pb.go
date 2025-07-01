@@ -7,13 +7,12 @@
 package proto
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -134,6 +133,8 @@ type GameState struct {
 	Deck                []*Card                `protobuf:"bytes,8,rep,name=deck,proto3" json:"deck,omitempty"`
 	CurrentTurnPlayerId string                 `protobuf:"bytes,9,opt,name=current_turn_player_id,json=currentTurnPlayerId,proto3" json:"current_turn_player_id,omitempty"`
 	CardsPlayedThisTurn int32                  `protobuf:"varint,10,opt,name=cards_played_this_turn,json=cardsPlayedThisTurn,proto3" json:"cards_played_this_turn,omitempty"`
+	GameOver            bool                   `protobuf:"varint,11,opt,name=game_over,json=gameOver,proto3" json:"game_over,omitempty"`
+	Message             string                 `protobuf:"bytes,12,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -236,6 +237,20 @@ func (x *GameState) GetCardsPlayedThisTurn() int32 {
 		return x.CardsPlayedThisTurn
 	}
 	return 0
+}
+
+func (x *GameState) GetGameOver() bool {
+	if x != nil {
+		return x.GameOver
+	}
+	return false
+}
+
+func (x *GameState) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
 }
 
 // Represents a player's hand
@@ -767,7 +782,7 @@ const file_game_proto_rawDesc = "" +
 	"\x04Pile\x12 \n" +
 	"\x05cards\x18\x01 \x03(\v2\n" +
 	".game.CardR\x05cards\x12\x1c\n" +
-	"\tascending\x18\x02 \x01(\bR\tascending\"\x8b\x04\n" +
+	"\tascending\x18\x02 \x01(\bR\tascending\"\xc2\x04\n" +
 	"\tGameState\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1d\n" +
 	"\n" +
@@ -781,7 +796,9 @@ const file_game_proto_rawDesc = "" +
 	".game.CardR\x04deck\x123\n" +
 	"\x16current_turn_player_id\x18\t \x01(\tR\x13currentTurnPlayerId\x123\n" +
 	"\x16cards_played_this_turn\x18\n" +
-	" \x01(\x05R\x13cardsPlayedThisTurn\x1aD\n" +
+	" \x01(\x05R\x13cardsPlayedThisTurn\x12\x1b\n" +
+	"\tgame_over\x18\v \x01(\bR\bgameOver\x12\x18\n" +
+	"\amessage\x18\f \x01(\tR\amessage\x1aD\n" +
 	"\n" +
 	"HandsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +

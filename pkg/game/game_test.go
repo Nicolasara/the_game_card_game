@@ -94,3 +94,35 @@ func TestEndTurn_DeckEmptyRule(t *testing.T) {
 	// 3. Assert
 	require.NoError(t, err, "Ending turn with 1 card should be allowed when deck is empty")
 }
+
+func TestEndTurn_NextPlayerHasNoMoves(t *testing.T) {
+	// 1. Setup
+	playerA := "player-a"
+	playerB := "player-b-stuck"
+	initialState := &pb.GameState{
+		GameId:              "no-moves-for-next-player-game",
+		PlayerIds:           []string{playerA, playerB},
+		CurrentTurnPlayerId: playerA,
+		DeckSize:            0, // Deck is empty
+		Piles: map[string]*pb.Pile{
+			"up1":   {Ascending: true, Cards: []*pb.Card{{Value: 98}}},
+			"up2":   {Ascending: true, Cards: []*pb.Card{{Value: 99}}},
+			"down1": {Ascending: false, Cards: []*pb.Card{{Value: 2}}},
+			"down2": {Ascending: false, Cards: []*pb.Card{{Value: 3}}},
+		},
+		Hands: map[string]*pb.Hand{
+			playerA: {Cards: []*pb.Card{}},            // Player A has finished their cards
+			playerB: {Cards: []*pb.Card{{Value: 50}}}, // Player B has a card but no valid move
+		},
+		CardsPlayedThisTurn: 2, // Player A has met the minimum
+	}
+
+	// 2. Execute
+	// Player A ends their turn, making it Player B's turn.
+	newState, err := EndTurn(initialState, playerA)
+
+	// 3. Assert
+	require.NoError(t, err)
+	require.True(t, newState.GameOver, "Game should be over because the next player has no valid moves")
+	require.Contains(t, newState.Message, "lost: No more valid moves")
+}

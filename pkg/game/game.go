@@ -200,7 +200,17 @@ func EndTurn(state *pb.GameState, playerID string) (*pb.GameState, error) {
 	if state.DeckSize == 0 && allHandsEmpty {
 		state.GameOver = true
 		state.Message = "You won! All cards have been played."
+		return state, nil
+	}
+
+	// Check if the new player is stuck (losing condition)
+	nextPlayerHand, ok := state.Hands[state.CurrentTurnPlayerId]
+	if ok && len(nextPlayerHand.Cards) > 0 {
+		if !isMovePossible(nextPlayerHand, state.Piles) {
+			state.GameOver = true
+			state.Message = fmt.Sprintf("Player %s lost: No more valid moves.", state.CurrentTurnPlayerId)
+		}
 	}
 
 	return state, nil
-} 
+}

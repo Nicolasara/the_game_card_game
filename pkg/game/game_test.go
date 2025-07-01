@@ -41,4 +41,56 @@ func TestPlayCard_LosingCondition(t *testing.T) {
 
 	// The hand should have one card left.
 	require.Len(t, newState.Hands[playerID].Cards, 1, "Player should have one card left in hand")
+}
+
+func TestEndTurn_WinCondition(t *testing.T) {
+	// 1. Setup
+	playerID := "victorious-player"
+	initialState := &pb.GameState{
+		GameId:              "winnable-game",
+		PlayerIds:           []string{playerID},
+		CurrentTurnPlayerId: playerID,
+		Deck:                []*pb.Card{}, // Deck is empty
+		DeckSize:            0,
+		Piles: map[string]*pb.Pile{
+			"up1": {Cards: []*pb.Card{{Value: 50}}},
+		},
+		Hands: map[string]*pb.Hand{
+			// The player has played all but their last two cards
+			playerID: {Cards: []*pb.Card{}},
+		},
+		CardsPlayedThisTurn: 2, // Player has met the minimum
+	}
+
+	// 2. Execute
+	newState, err := EndTurn(initialState, playerID)
+
+	// 3. Assert
+	require.NoError(t, err)
+	require.NotNil(t, newState)
+	require.True(t, newState.GameOver, "Game should be over because all cards are played")
+	require.Equal(t, "You won! All cards have been played.", newState.Message)
+}
+
+func TestEndTurn_DeckEmptyRule(t *testing.T) {
+	// 1. Setup
+	playerID := "player-on-empty-deck"
+	initialState := &pb.GameState{
+		GameId:              "empty-deck-game",
+		PlayerIds:           []string{playerID},
+		CurrentTurnPlayerId: playerID,
+		Deck:                []*pb.Card{}, // Deck is empty
+		DeckSize:            0,
+		Hands: map[string]*pb.Hand{
+			playerID: {Cards: []*pb.Card{{Value: 20}}},
+		},
+		CardsPlayedThisTurn: 1, // Player has played one card
+	}
+
+	// 2. Execute
+	// With an empty deck, playing one card should be enough to end the turn.
+	_, err := EndTurn(initialState, playerID)
+
+	// 3. Assert
+	require.NoError(t, err, "Ending turn with 1 card should be allowed when deck is empty")
 } 

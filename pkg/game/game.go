@@ -138,6 +138,17 @@ func isMovePossible(hand *pb.Hand, piles map[string]*pb.Pile) bool {
 
 // EndTurn replenishes the player's hand, resets the turn counter, and advances to the next player.
 func EndTurn(state *pb.GameState, playerID string) (*pb.GameState, error) {
+	// Validate that the player has played enough cards.
+	// The minimum is 2, unless the deck is empty, in which case it's 1.
+	minCards := 2
+	if state.DeckSize == 0 {
+		minCards = 1
+	}
+
+	if state.CardsPlayedThisTurn < int32(minCards) {
+		return nil, fmt.Errorf("must play at least %d card(s) to end turn (played %d)", minCards, state.CardsPlayedThisTurn)
+	}
+
 	// Replenish hand
 	numToDraw := int(state.CardsPlayedThisTurn)
 	if numToDraw > 0 {
@@ -176,6 +187,20 @@ func EndTurn(state *pb.GameState, playerID string) (*pb.GameState, error) {
 	}
 	nextPlayerIndex := (currentPlayerIndex + 1) % len(state.PlayerIds)
 	state.CurrentTurnPlayerId = state.PlayerIds[nextPlayerIndex]
+
+	// Check for win condition after advancing the turn
+	allHandsEmpty := true
+	for _, hand := range state.Hands {
+		if len(hand.Cards) > 0 {
+			allHandsEmpty = false
+			break
+		}
+	}
+
+	if state.DeckSize == 0 && allHandsEmpty {
+		state.GameOver = true
+		state.Message = "You won! All cards have been played."
+	}
 
 	return state, nil
 } 

@@ -1,0 +1,14 @@
+# Binaries for build
+/bin/
+
+# Proto generated files
+/proto/*.pb.go
+/proto/*.pb.gw.go
+/proto/*_grpc.pb.go
+
+# Mock files
+/pkg/storage/mocks/Storer.go
+
+# IDE settings
+.vscode/
+.idea/

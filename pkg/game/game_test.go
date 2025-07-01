@@ -34,7 +34,7 @@ func TestPlayCard_LosingCondition(t *testing.T) {
 	// 3. Assert
 	require.NoError(t, err)
 	require.NotNil(t, newState)
-	
+
 	// The key assertion: The game should now be over.
 	require.True(t, newState.GameOver, "Game should be over because no second move is possible")
 	require.Contains(t, newState.Message, "lost: No more valid moves")
@@ -93,4 +93,4 @@ func TestEndTurn_DeckEmptyRule(t *testing.T) {
 
 	// 3. Assert
 	require.NoError(t, err, "Ending turn with 1 card should be allowed when deck is empty")
-} 
+}

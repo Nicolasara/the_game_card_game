@@ -29,7 +29,7 @@ type model struct {
 	playerID       string
 	gameID         string
 	hand           []int32
-	mode           string // "select-card", "select-pile"
+	mode           string // "select-card", "select-pile", "confirm-quit"
 	selectedCard   int32
 	selectedPile   int // 0: up1, 1: up2, 2: down1, 3: down2
 	status         string
@@ -50,13 +50,10 @@ func newModel(client pb.GameServiceClient, playerID, gameID string) model {
 		playerID: playerID,
 		gameID:   gameID,
 		mode:     "select-card",
-		status:   "Select a card to play using number keys (1-9).",
 	}
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
-}
+func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -69,8 +66,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			sort.Slice(m.hand, func(i, j int) bool { return m.hand[i] < m.hand[j] })
 		}
-		m.mode = "select-card" // Reset mode after any update
-		m.status = "Select a card (1-" + strconv.Itoa(len(m.hand)) + "), then select a pile (←/→)."
+		m.mode = "select-card"
+		m.selectedCard = 0
+		m.status = m.getTurnStatus()
 		return m, nil
 
 	case statusUpdateMsg:
@@ -88,17 +86,45 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func handleKeyPress(m model, msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// If in confirm-quit mode, only handle y/n/esc.
+	if m.mode == "confirm-quit" {
+		switch msg.String() {
+		case "y", "Y":
+			return m, tea.Quit
+		case "n", "N", "esc":
+			m.mode = "select-card"
+			m.status = m.getTurnStatus()
+			return m, nil
+		}
+		return m, nil
+	}
+
+	// Global quit
+	if msg.Type == tea.KeyCtrlC || msg.String() == "q" {
+		m.mode = "confirm-quit"
+		m.status = "Are you sure you want to quit? (y/n)"
+		return m, nil
+	}
+
+	// Only allow actions if it's our turn
+	if m.state.CurrentTurnPlayerId != m.playerID {
+		return m, nil
+	}
+	
 	switch m.mode {
 	case "select-card":
-		if msg.Type >= tea.KeyRunes && msg.String() >= "1" && msg.String() <= "9" {
+		if msg.String() >= "1" && msg.String() <= "9" {
 			cardIndex, _ := strconv.Atoi(msg.String())
-			cardIndex-- // 1-based to 0-based
-			if cardIndex < len(m.hand) {
-				m.selectedCard = m.hand[cardIndex]
+			if cardIndex > 0 && cardIndex <= len(m.hand) {
+				m.selectedCard = m.hand[cardIndex-1]
 				m.mode = "select-pile"
-				m.status = fmt.Sprintf("Selected card %d. Select a pile with ←/→, then press Enter to play.", m.selectedCard)
+				m.status = fmt.Sprintf("Selected card %d. Use ←/→ to pick a pile, Enter to play.", m.selectedCard)
+			}
+		} else if msg.String() == "e" {
+			if m.state.CardsPlayedThisTurn >= 2 {
+				return m, m.endTurnCmd()
 			} else {
-				m.status = fmt.Sprintf("Invalid card selection. Choose 1-%d.", len(m.hand))
+				m.status = fmt.Sprintf("You must play at least 2 cards to end your turn (played %d).", m.state.CardsPlayedThisTurn)
 			}
 		}
 
@@ -113,157 +139,141 @@ func handleKeyPress(m model, msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "esc":
 			m.mode = "select-card"
 			m.selectedCard = 0
-			m.status = "Selection cancelled. Select a card to play (1-9)."
+			m.status = m.getTurnStatus()
 		}
 	}
-
-	if msg.String() == "q" || msg.Type == tea.KeyCtrlC {
-		return m, tea.Quit
-	}
-
 	return m, nil
 }
 
 func (m *model) playCardCmd() tea.Cmd {
 	return func() tea.Msg {
-		pileID := pileIDs[m.selectedPile]
 		req := &pb.PlayCardRequest{
 			GameId:   m.gameID,
 			PlayerId: m.playerID,
 			Card:     &pb.Card{Value: m.selectedCard},
-			PileId:   pileID,
+			PileId:   pileIDs[m.selectedPile],
 		}
 		res, err := m.client.PlayCard(context.Background(), req)
 		if err != nil {
-			return statusUpdateMsg(fmt.Sprintf("Error playing card: %v", err))
+			return statusUpdateMsg(fmt.Sprintf("Error: %v", err))
 		}
 		if !res.Success {
-			return statusUpdateMsg(fmt.Sprintf("Move rejected: %s", res.Message))
+			return statusUpdateMsg(fmt.Sprintf("Invalid move: %s", res.Message))
 		}
-		// On success, we don't need to do anything.
-		// The stream will send a stateUpdateMsg which will redraw the board.
-		return statusUpdateMsg(fmt.Sprintf("Played %d on %s. Waiting for next state...", m.selectedCard, pileID))
+		return statusUpdateMsg(fmt.Sprintf("Played %d on %s.", m.selectedCard, pileIDs[m.selectedPile]))
 	}
 }
 
-// --- TUI STYLES & VIEW ---
+func (m *model) endTurnCmd() tea.Cmd {
+	return func() tea.Msg {
+		_, err := m.client.EndTurn(context.Background(), &pb.EndTurnRequest{GameId: m.gameID, PlayerId: m.playerID})
+		if err != nil {
+			return statusUpdateMsg(fmt.Sprintf("Error ending turn: %v", err))
+		}
+		return statusUpdateMsg("Turn ended. Waiting for next state...")
+	}
+}
+
+// --- TUI VIEW & STYLES ---
 var (
-	baseStyle = lipgloss.NewStyle().Padding(1, 2)
-	pileStyle = baseStyle.Copy().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("63")).
-			Width(12).
-			Align(lipgloss.Center)
+	baseStyle         = lipgloss.NewStyle().Padding(1, 2)
+	pileStyle         = baseStyle.Copy().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("63")).Width(12).Align(lipgloss.Center)
 	selectedPileStyle = pileStyle.Copy().BorderForeground(lipgloss.Color("228"))
 	handStyle         = baseStyle.Copy().Border(lipgloss.DoubleBorder(), true).BorderForeground(lipgloss.Color("228"))
+	faintStyle        = lipgloss.NewStyle().Faint(true)
 )
 
 func (m model) View() string {
-	if m.err != nil {
-		return fmt.Sprintf("An error occurred: %v\n", m.err)
-	}
-	if m.state == nil {
-		return "Connecting to game stream..."
-	}
+	if m.err != nil { return fmt.Sprintf("Error: %v\n", m.err) }
+	if m.state == nil { return "Connecting to game..." }
 
-	// Piles
+	// Piles View
 	var pileViews []string
+	isMyTurn := m.state.CurrentTurnPlayerId == m.playerID
 	for i, id := range pileIDs {
 		style := pileStyle
-		if m.mode == "select-pile" && i == m.selectedPile {
+		if isMyTurn && m.mode == "select-pile" && i == m.selectedPile {
 			style = selectedPileStyle
 		}
-		initial := "100"
-		if strings.HasPrefix(id, "up") {
-			initial = "1"
-		}
-		pileViews = append(pileViews, getPileView(id, initial, m.state.Piles[id], style))
+		pileViews = append(pileViews, getPileView(id, m.state.Piles[id], style))
 	}
 	pilesView := lipgloss.JoinHorizontal(lipgloss.Top, pileViews...)
 
-	// Hand
+	// Hand View
 	var handItems []string
 	for i, v := range m.hand {
 		cardStr := strconv.Itoa(int(v))
-		if m.selectedCard == v {
+		if isMyTurn && m.selectedCard == v {
 			cardStr = lipgloss.NewStyle().Foreground(lipgloss.Color("228")).Render(cardStr)
 		}
-		handItems = append(handItems, fmt.Sprintf("%d: %s", i+1, cardStr))
+		handItems = append(handItems, fmt.Sprintf("%d:%s", i+1, cardStr))
 	}
-	handStr := fmt.Sprintf("Your Hand (%s):\n%s", m.playerID, strings.Join(handItems, "  "))
-	handView := handStyle.Render(handStr)
+	handView := handStyle.Render(fmt.Sprintf("Your Hand (%s):\n%s", m.playerID, strings.Join(handItems, "  ")))
 
 	// Status & Help
-	help := " | Press 'q' or 'ctrl+c' to quit."
-	if m.mode == "select-pile" {
-		help = " | 'esc' to re-select card" + help
+	help := " | 'q': quit"
+	if m.mode == "confirm-quit" {
+		help = "" // No extra help in this mode
+	} else if isMyTurn {
+		if m.mode == "select-pile" {
+			help += " | 'esc': cancel selection"
+		} else if m.state.CardsPlayedThisTurn >= 2 {
+			help += " | 'e': end turn"
+		}
 	}
-	statusView := lipgloss.NewStyle().Faint(true).Render(m.status + help)
-
-	return lipgloss.JoinVertical(lipgloss.Left, pilesView, handView, statusView)
+	
+	return lipgloss.JoinVertical(lipgloss.Left, pilesView, handView, faintStyle.Render(m.status+help))
 }
 
-func getPileView(name, initialValue string, pile *pb.Pile, style lipgloss.Style) string {
-	topCard := initialValue
+func getPileView(name string, pile *pb.Pile, style lipgloss.Style) string {
+	initial, displayName := "1", "UP ⬆"
+	if strings.HasPrefix(name, "down") {
+		initial, displayName = "100", "DOWN ⬇"
+	}
+	topCard := initial
 	if pile != nil && len(pile.Cards) > 0 {
 		topCard = strconv.Itoa(int(pile.Cards[len(pile.Cards)-1].Value))
-	}
-	displayName := strings.ToUpper(name)
-	if strings.HasPrefix(name, "up") {
-		displayName = "UP ⬆"
-	} else {
-		displayName = "DOWN ⬇"
 	}
 	return style.Render(fmt.Sprintf("%s\n\n%s", displayName, topCard))
 }
 
-// --- MAIN LOGIC ---
+func (m *model) getTurnStatus() string {
+	if m.state.CurrentTurnPlayerId == m.playerID {
+		return fmt.Sprintf("Your turn! Select a card (1-%d). %d card(s) played.", len(m.hand), m.state.CardsPlayedThisTurn)
+	}
+	return fmt.Sprintf("Waiting for %s's turn...", m.state.CurrentTurnPlayerId)
+}
+
+// --- MAIN & GRPC ---
 
 func main() {
-	// --- Command Line Flags ---
 	fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	var (
-		gameID   = fs.String("game", "", "Game ID to join or stream")
-		playerID = fs.String("player", "default-player", "Your Player ID")
-		create   = fs.Bool("create", false, "Create a new game")
-	)
+	gameID := fs.String("game", "", "Game ID to join")
+	playerID := fs.String("player", "default-player", "Your Player ID")
+	create := fs.Bool("create", false, "Create a new game")
 	fs.Parse(os.Args[1:])
 
-	if !*create && *gameID == "" {
-		log.Fatalf("You must either provide a -game ID to join or use the -create flag.")
-	}
-	if *playerID == "" {
-		log.Fatalf("-player flag cannot be empty.")
-	}
+	if !*create && *gameID == "" { log.Fatal("Use -create or provide a -game ID.") }
+	if *playerID == "" { log.Fatal("-player is required.") }
 
-	// --- gRPC Connection ---
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
+	if err != nil { log.Fatalf("did not connect: %v", err) }
 	defer conn.Close()
 	client := pb.NewGameServiceClient(conn)
 
-	// --- Create game if requested ---
 	if *create {
 		res, err := client.CreateGame(context.Background(), &pb.CreateGameRequest{PlayerId: *playerID})
-		if err != nil {
-			log.Fatalf("Failed to create game: %v", err)
-		}
+		if err != nil { log.Fatalf("Failed to create game: %v", err) }
 		*gameID = res.GetGameState().GetGameId()
-		log.Printf("Game created with ID: %s. Starting stream...", *gameID)
-		time.Sleep(2 * time.Second) // Give user time to see the ID
+		log.Printf("Game created: %s. Starting TUI...", *gameID)
+		time.Sleep(1 * time.Second)
 	}
 
-	// --- Run TUI ---
 	m := newModel(client, *playerID, *gameID)
 	p := tea.NewProgram(m, tea.WithAltScreen())
-	
 	go streamState(p, client, *gameID)
 
-	if _, err := p.Run(); err != nil {
-		log.Fatalf("Error running program: %v", err)
-	}
+	if _, err := p.Run(); err != nil { log.Fatalf("Error running TUI: %v", err) }
 }
 
 func streamState(p *tea.Program, client pb.GameServiceClient, gameID string) {
@@ -274,9 +284,7 @@ func streamState(p *tea.Program, client pb.GameServiceClient, gameID string) {
 	}
 	for {
 		state, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			break // Stream closed cleanly
-		}
+		if errors.Is(err, io.EOF) { break }
 		if err != nil {
 			p.Send(errMsg{err})
 			return

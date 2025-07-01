@@ -7,12 +7,13 @@
 package proto
 
 import (
-	_ "google.golang.org/genproto/googleapis/api/annotations"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	_ "google.golang.org/genproto/googleapis/api/annotations"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -122,17 +123,19 @@ func (x *Pile) GetAscending() bool {
 
 // Represents the full state of a game
 type GameState struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
-	PlayerIds     []string               `protobuf:"bytes,2,rep,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
-	Hands         map[string]*Hand       `protobuf:"bytes,3,rep,name=hands,proto3" json:"hands,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Piles         map[string]*Pile       `protobuf:"bytes,4,rep,name=piles,proto3" json:"piles,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // e.g., "up1", "up2", "down1", "down2"
-	DeckSize      int32                  `protobuf:"varint,5,opt,name=deck_size,json=deckSize,proto3" json:"deck_size,omitempty"`
-	IsOver        bool                   `protobuf:"varint,6,opt,name=is_over,json=isOver,proto3" json:"is_over,omitempty"`
-	Winner        string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
-	Deck          []*Card                `protobuf:"bytes,8,rep,name=deck,proto3" json:"deck,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	GameId              string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	PlayerIds           []string               `protobuf:"bytes,2,rep,name=player_ids,json=playerIds,proto3" json:"player_ids,omitempty"`
+	Hands               map[string]*Hand       `protobuf:"bytes,3,rep,name=hands,proto3" json:"hands,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Piles               map[string]*Pile       `protobuf:"bytes,4,rep,name=piles,proto3" json:"piles,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // e.g., "up1", "up2", "down1", "down2"
+	DeckSize            int32                  `protobuf:"varint,5,opt,name=deck_size,json=deckSize,proto3" json:"deck_size,omitempty"`
+	IsOver              bool                   `protobuf:"varint,6,opt,name=is_over,json=isOver,proto3" json:"is_over,omitempty"`
+	Winner              string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
+	Deck                []*Card                `protobuf:"bytes,8,rep,name=deck,proto3" json:"deck,omitempty"`
+	CurrentTurnPlayerId string                 `protobuf:"bytes,9,opt,name=current_turn_player_id,json=currentTurnPlayerId,proto3" json:"current_turn_player_id,omitempty"`
+	CardsPlayedThisTurn int32                  `protobuf:"varint,10,opt,name=cards_played_this_turn,json=cardsPlayedThisTurn,proto3" json:"cards_played_this_turn,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *GameState) Reset() {
@@ -219,6 +222,20 @@ func (x *GameState) GetDeck() []*Card {
 		return x.Deck
 	}
 	return nil
+}
+
+func (x *GameState) GetCurrentTurnPlayerId() string {
+	if x != nil {
+		return x.CurrentTurnPlayerId
+	}
+	return ""
+}
+
+func (x *GameState) GetCardsPlayedThisTurn() int32 {
+	if x != nil {
+		return x.CardsPlayedThisTurn
+	}
+	return 0
 }
 
 // Represents a player's hand
@@ -626,6 +643,119 @@ func (x *StreamGameStateRequest) GetGameId() string {
 	return ""
 }
 
+// EndTurn
+type EndTurnRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GameId        string                 `protobuf:"bytes,1,opt,name=game_id,json=gameId,proto3" json:"game_id,omitempty"`
+	PlayerId      string                 `protobuf:"bytes,2,opt,name=player_id,json=playerId,proto3" json:"player_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EndTurnRequest) Reset() {
+	*x = EndTurnRequest{}
+	mi := &file_game_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EndTurnRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EndTurnRequest) ProtoMessage() {}
+
+func (x *EndTurnRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EndTurnRequest.ProtoReflect.Descriptor instead.
+func (*EndTurnRequest) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *EndTurnRequest) GetGameId() string {
+	if x != nil {
+		return x.GameId
+	}
+	return ""
+}
+
+func (x *EndTurnRequest) GetPlayerId() string {
+	if x != nil {
+		return x.PlayerId
+	}
+	return ""
+}
+
+type EndTurnResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	GameState     *GameState             `protobuf:"bytes,2,opt,name=game_state,json=gameState,proto3" json:"game_state,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EndTurnResponse) Reset() {
+	*x = EndTurnResponse{}
+	mi := &file_game_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EndTurnResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EndTurnResponse) ProtoMessage() {}
+
+func (x *EndTurnResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_game_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EndTurnResponse.ProtoReflect.Descriptor instead.
+func (*EndTurnResponse) Descriptor() ([]byte, []int) {
+	return file_game_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *EndTurnResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *EndTurnResponse) GetGameState() *GameState {
+	if x != nil {
+		return x.GameState
+	}
+	return nil
+}
+
+func (x *EndTurnResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_game_proto protoreflect.FileDescriptor
 
 const file_game_proto_rawDesc = "" +
@@ -637,7 +767,7 @@ const file_game_proto_rawDesc = "" +
 	"\x04Pile\x12 \n" +
 	"\x05cards\x18\x01 \x03(\v2\n" +
 	".game.CardR\x05cards\x12\x1c\n" +
-	"\tascending\x18\x02 \x01(\bR\tascending\"\xa1\x03\n" +
+	"\tascending\x18\x02 \x01(\bR\tascending\"\x8b\x04\n" +
 	"\tGameState\x12\x17\n" +
 	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1d\n" +
 	"\n" +
@@ -648,7 +778,10 @@ const file_game_proto_rawDesc = "" +
 	"\ais_over\x18\x06 \x01(\bR\x06isOver\x12\x16\n" +
 	"\x06winner\x18\a \x01(\tR\x06winner\x12\x1e\n" +
 	"\x04deck\x18\b \x03(\v2\n" +
-	".game.CardR\x04deck\x1aD\n" +
+	".game.CardR\x04deck\x123\n" +
+	"\x16current_turn_player_id\x18\t \x01(\tR\x13currentTurnPlayerId\x123\n" +
+	"\x16cards_played_this_turn\x18\n" +
+	" \x01(\x05R\x13cardsPlayedThisTurn\x1aD\n" +
 	"\n" +
 	"HandsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12 \n" +
@@ -684,13 +817,22 @@ const file_game_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"1\n" +
 	"\x16StreamGameStateRequest\x12\x17\n" +
-	"\agame_id\x18\x01 \x01(\tR\x06gameId2\x8c\x03\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId\"F\n" +
+	"\x0eEndTurnRequest\x12\x17\n" +
+	"\agame_id\x18\x01 \x01(\tR\x06gameId\x12\x1b\n" +
+	"\tplayer_id\x18\x02 \x01(\tR\bplayerId\"u\n" +
+	"\x0fEndTurnResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12.\n" +
+	"\n" +
+	"game_state\x18\x02 \x01(\v2\x0f.game.GameStateR\tgameState\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\x94\x04\n" +
 	"\vGameService\x12U\n" +
 	"\n" +
 	"CreateGame\x12\x17.game.CreateGameRequest\x1a\x18.game.CreateGameResponse\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/games\x12^\n" +
-	"\bJoinGame\x12\x15.game.JoinGameRequest\x1a\x16.game.JoinGameResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/games/{game_id}/join\x12^\n" +
-	"\bPlayCard\x12\x15.game.PlayCardRequest\x1a\x16.game.PlayCardResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/games/{game_id}/play\x12f\n" +
-	"\x0fStreamGameState\x12\x1c.game.StreamGameStateRequest\x1a\x0f.game.GameState\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/games/{game_id}/stream0\x01B1Z/github.com/nico-araujo/the-game-card-game/protob\x06proto3"
+	"\bJoinGame\x12\x15.game.JoinGameRequest\x1a\x16.game.JoinGameResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/v1/games/{game_id}/join\x12r\n" +
+	"\bPlayCard\x12\x15.game.PlayCardRequest\x1a\x16.game.PlayCardResponse\"7\x82\xd3\xe4\x93\x021:\x01*\",/v1/games/{game_id}/players/{player_id}:play\x12f\n" +
+	"\x0fStreamGameState\x12\x1c.game.StreamGameStateRequest\x1a\x0f.game.GameState\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/v1/games/{game_id}/stream0\x01\x12r\n" +
+	"\aEndTurn\x12\x14.game.EndTurnRequest\x1a\x15.game.EndTurnResponse\":\x82\xd3\xe4\x93\x024:\x01*\"//v1/games/{game_id}/players/{player_id}:endTurnB1Z/github.com/nico-araujo/the-game-card-game/protob\x06proto3"
 
 var (
 	file_game_proto_rawDescOnce sync.Once
@@ -704,7 +846,7 @@ func file_game_proto_rawDescGZIP() []byte {
 	return file_game_proto_rawDescData
 }
 
-var file_game_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_game_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_game_proto_goTypes = []any{
 	(*Card)(nil),                   // 0: game.Card
 	(*Pile)(nil),                   // 1: game.Pile
@@ -717,33 +859,38 @@ var file_game_proto_goTypes = []any{
 	(*PlayCardRequest)(nil),        // 8: game.PlayCardRequest
 	(*PlayCardResponse)(nil),       // 9: game.PlayCardResponse
 	(*StreamGameStateRequest)(nil), // 10: game.StreamGameStateRequest
-	nil,                            // 11: game.GameState.HandsEntry
-	nil,                            // 12: game.GameState.PilesEntry
+	(*EndTurnRequest)(nil),         // 11: game.EndTurnRequest
+	(*EndTurnResponse)(nil),        // 12: game.EndTurnResponse
+	nil,                            // 13: game.GameState.HandsEntry
+	nil,                            // 14: game.GameState.PilesEntry
 }
 var file_game_proto_depIdxs = []int32{
 	0,  // 0: game.Pile.cards:type_name -> game.Card
-	11, // 1: game.GameState.hands:type_name -> game.GameState.HandsEntry
-	12, // 2: game.GameState.piles:type_name -> game.GameState.PilesEntry
+	13, // 1: game.GameState.hands:type_name -> game.GameState.HandsEntry
+	14, // 2: game.GameState.piles:type_name -> game.GameState.PilesEntry
 	0,  // 3: game.GameState.deck:type_name -> game.Card
 	0,  // 4: game.Hand.cards:type_name -> game.Card
 	2,  // 5: game.CreateGameResponse.game_state:type_name -> game.GameState
 	2,  // 6: game.JoinGameResponse.game_state:type_name -> game.GameState
 	0,  // 7: game.PlayCardRequest.card:type_name -> game.Card
-	3,  // 8: game.GameState.HandsEntry.value:type_name -> game.Hand
-	1,  // 9: game.GameState.PilesEntry.value:type_name -> game.Pile
-	4,  // 10: game.GameService.CreateGame:input_type -> game.CreateGameRequest
-	6,  // 11: game.GameService.JoinGame:input_type -> game.JoinGameRequest
-	8,  // 12: game.GameService.PlayCard:input_type -> game.PlayCardRequest
-	10, // 13: game.GameService.StreamGameState:input_type -> game.StreamGameStateRequest
-	5,  // 14: game.GameService.CreateGame:output_type -> game.CreateGameResponse
-	7,  // 15: game.GameService.JoinGame:output_type -> game.JoinGameResponse
-	9,  // 16: game.GameService.PlayCard:output_type -> game.PlayCardResponse
-	2,  // 17: game.GameService.StreamGameState:output_type -> game.GameState
-	14, // [14:18] is the sub-list for method output_type
-	10, // [10:14] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 8: game.EndTurnResponse.game_state:type_name -> game.GameState
+	3,  // 9: game.GameState.HandsEntry.value:type_name -> game.Hand
+	1,  // 10: game.GameState.PilesEntry.value:type_name -> game.Pile
+	4,  // 11: game.GameService.CreateGame:input_type -> game.CreateGameRequest
+	6,  // 12: game.GameService.JoinGame:input_type -> game.JoinGameRequest
+	8,  // 13: game.GameService.PlayCard:input_type -> game.PlayCardRequest
+	10, // 14: game.GameService.StreamGameState:input_type -> game.StreamGameStateRequest
+	11, // 15: game.GameService.EndTurn:input_type -> game.EndTurnRequest
+	5,  // 16: game.GameService.CreateGame:output_type -> game.CreateGameResponse
+	7,  // 17: game.GameService.JoinGame:output_type -> game.JoinGameResponse
+	9,  // 18: game.GameService.PlayCard:output_type -> game.PlayCardResponse
+	2,  // 19: game.GameService.StreamGameState:output_type -> game.GameState
+	12, // 20: game.GameService.EndTurn:output_type -> game.EndTurnResponse
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_game_proto_init() }
@@ -757,7 +904,7 @@ func file_game_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_game_proto_rawDesc), len(file_game_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"the_game_card_game/pkg/game"
@@ -84,6 +85,13 @@ func (s *Server) PlayCard(ctx context.Context, req *pb.PlayCardRequest) (*pb.Pla
 		return &pb.PlayCardResponse{Success: false, Message: "Game not found"}, err
 	}
 
+	// It must be the player's turn to play.
+	if state.CurrentTurnPlayerId != req.GetPlayerId() {
+		msg := fmt.Sprintf("it is not your turn (current turn: %s)", state.CurrentTurnPlayerId)
+		log.Printf(msg)
+		return &pb.PlayCardResponse{Success: false, Message: msg}, nil
+	}
+
 	// Apply the move using the game logic
 	newState, err := game.PlayCard(state, req.GetPlayerId(), req.GetCard().GetValue(), req.GetPileId())
 	if err != nil {
@@ -113,6 +121,44 @@ func (s *Server) PlayCard(ctx context.Context, req *pb.PlayCardRequest) (*pb.Pla
 	}()
 
 	return &pb.PlayCardResponse{Success: true}, nil
+}
+
+func (s *Server) EndTurn(ctx context.Context, req *pb.EndTurnRequest) (*pb.EndTurnResponse, error) {
+	log.Printf("EndTurn request received for game %s by player %s", req.GetGameId(), req.GetPlayerId())
+
+	state, err := s.store.GetGameState(ctx, req.GetGameId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get game state: %w", err)
+	}
+
+	// Validate that it's the correct player's turn.
+	if state.CurrentTurnPlayerId != req.GetPlayerId() {
+		msg := fmt.Sprintf("it is not your turn (current turn: %s)", state.CurrentTurnPlayerId)
+		return &pb.EndTurnResponse{Success: false, Message: msg}, nil
+	}
+
+	// Validate that the player has played at least two cards.
+	if state.CardsPlayedThisTurn < 2 {
+		msg := fmt.Sprintf("must play at least 2 cards to end turn (played %d)", state.CardsPlayedThisTurn)
+		return &pb.EndTurnResponse{Success: false, Message: msg}, nil
+	}
+
+	newState, err := game.EndTurn(state, req.GetPlayerId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to process end turn: %w", err)
+	}
+
+	// Update state in Redis
+	if err := s.store.UpdateGameState(ctx, req.GetGameId(), newState); err != nil {
+		return nil, fmt.Errorf("failed to update game state: %w", err)
+	}
+
+	// Notify subscribers
+	if err := s.store.PublishGameUpdate(ctx, req.GetGameId()); err != nil {
+		log.Printf("failed to publish game update: %v", err) // Non-critical
+	}
+
+	return &pb.EndTurnResponse{Success: true, GameState: newState}, nil
 }
 
 func (s *Server) StreamGameState(req *pb.StreamGameStateRequest, stream pb.GameService_StreamGameStateServer) error {

@@ -27,15 +27,23 @@ service GameService {
   // Play a card in a game.
   rpc PlayCard(PlayCardRequest) returns (PlayCardResponse) {
     option (google.api.http) = {
-      post: "/v1/games/{game_id}/play"
+      post: "/v1/games/{game_id}/players/{player_id}:play"
       body: "*"
     };
   }
 
   // Stream the state of a game.
   rpc StreamGameState(StreamGameStateRequest) returns (stream GameState) {
-     option (google.api.http) = {
+    option (google.api.http) = {
       get: "/v1/games/{game_id}/stream"
+    };
+  }
+
+  // End a player's turn in a game.
+  rpc EndTurn(EndTurnRequest) returns (EndTurnResponse) {
+    option (google.api.http) = {
+      post: "/v1/games/{game_id}/players/{player_id}:endTurn",
+      body: "*"
     };
   }
 }
@@ -63,6 +71,8 @@ message GameState {
   bool is_over = 6;
   string winner = 7;
   repeated Card deck = 8;
+  string current_turn_player_id = 9;
+  int32 cards_played_this_turn = 10;
 }
 
 // Represents a player's hand
@@ -108,4 +118,16 @@ message PlayCardResponse {
 // StreamGameState
 message StreamGameStateRequest {
   string game_id = 1;
+}
+
+// EndTurn
+message EndTurnRequest {
+  string game_id = 1;
+  string player_id = 2;
+}
+
+message EndTurnResponse {
+  bool success = 1;
+  GameState game_state = 2;
+  string message = 3;
 } 

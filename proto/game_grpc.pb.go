@@ -23,6 +23,7 @@ const (
 	GameService_JoinGame_FullMethodName        = "/game.GameService/JoinGame"
 	GameService_PlayCard_FullMethodName        = "/game.GameService/PlayCard"
 	GameService_StreamGameState_FullMethodName = "/game.GameService/StreamGameState"
+	GameService_EndTurn_FullMethodName         = "/game.GameService/EndTurn"
 )
 
 // GameServiceClient is the client API for GameService service.
@@ -39,6 +40,8 @@ type GameServiceClient interface {
 	PlayCard(ctx context.Context, in *PlayCardRequest, opts ...grpc.CallOption) (*PlayCardResponse, error)
 	// Stream the state of a game.
 	StreamGameState(ctx context.Context, in *StreamGameStateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GameState], error)
+	// End a player's turn in a game.
+	EndTurn(ctx context.Context, in *EndTurnRequest, opts ...grpc.CallOption) (*EndTurnResponse, error)
 }
 
 type gameServiceClient struct {
@@ -98,6 +101,16 @@ func (c *gameServiceClient) StreamGameState(ctx context.Context, in *StreamGameS
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GameService_StreamGameStateClient = grpc.ServerStreamingClient[GameState]
 
+func (c *gameServiceClient) EndTurn(ctx context.Context, in *EndTurnRequest, opts ...grpc.CallOption) (*EndTurnResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EndTurnResponse)
+	err := c.cc.Invoke(ctx, GameService_EndTurn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameServiceServer is the server API for GameService service.
 // All implementations must embed UnimplementedGameServiceServer
 // for forward compatibility.
@@ -112,6 +125,8 @@ type GameServiceServer interface {
 	PlayCard(context.Context, *PlayCardRequest) (*PlayCardResponse, error)
 	// Stream the state of a game.
 	StreamGameState(*StreamGameStateRequest, grpc.ServerStreamingServer[GameState]) error
+	// End a player's turn in a game.
+	EndTurn(context.Context, *EndTurnRequest) (*EndTurnResponse, error)
 	mustEmbedUnimplementedGameServiceServer()
 }
 
@@ -133,6 +148,9 @@ func (UnimplementedGameServiceServer) PlayCard(context.Context, *PlayCardRequest
 }
 func (UnimplementedGameServiceServer) StreamGameState(*StreamGameStateRequest, grpc.ServerStreamingServer[GameState]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamGameState not implemented")
+}
+func (UnimplementedGameServiceServer) EndTurn(context.Context, *EndTurnRequest) (*EndTurnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EndTurn not implemented")
 }
 func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
 func (UnimplementedGameServiceServer) testEmbeddedByValue()                     {}
@@ -220,6 +238,24 @@ func _GameService_StreamGameState_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GameService_StreamGameStateServer = grpc.ServerStreamingServer[GameState]
 
+func _GameService_EndTurn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EndTurnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameServiceServer).EndTurn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameService_EndTurn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameServiceServer).EndTurn(ctx, req.(*EndTurnRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +274,10 @@ var GameService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PlayCard",
 			Handler:    _GameService_PlayCard_Handler,
+		},
+		{
+			MethodName: "EndTurn",
+			Handler:    _GameService_EndTurn_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -88,7 +88,7 @@ func (s *Server) PlayCard(ctx context.Context, req *pb.PlayCardRequest) (*pb.Pla
 	// It must be the player's turn to play.
 	if state.CurrentTurnPlayerId != req.GetPlayerId() {
 		msg := fmt.Sprintf("it is not your turn (current turn: %s)", state.CurrentTurnPlayerId)
-		log.Printf(msg)
+		log.Printf("%s", msg)
 		return &pb.PlayCardResponse{Success: false, Message: msg}, nil
 	}
 

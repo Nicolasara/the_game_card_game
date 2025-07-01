@@ -99,8 +99,9 @@ func TestPlayCard_Unit_Valid(t *testing.T) {
 
 	// Initial state that the mock will return
 	initialState := &pb.GameState{
-		GameId:    gameID,
-		PlayerIds: []string{playerID},
+		GameId:              gameID,
+		PlayerIds:           []string{playerID},
+		CurrentTurnPlayerId: playerID,
 		Piles: map[string]*pb.Pile{
 			"up1": {Ascending: true, Cards: []*pb.Card{{Value: 10}}},
 		},

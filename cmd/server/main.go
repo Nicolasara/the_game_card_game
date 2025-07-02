@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	grpcPort = ":50051"
-	httpPort = ":8080"
+	grpcPort = "0.0.0.0:50051"
+	httpPort = "0.0.0.0:8080"
 )
 
 func main() {
@@ -33,16 +33,16 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// --- Database and Server Initialization ---
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "localhost:6379"
 	}
-	postgresDSN := os.Getenv("POSTGRES_DSN")
-	if postgresDSN == "" {
-		postgresDSN = "postgres://user:password@localhost:5432/the_game?sslmode=disable"
+	postgresURL := os.Getenv("POSTGRES_URL")
+	if postgresURL == "" {
+		postgresURL = "postgres://user:password@localhost:5432/the_game?sslmode=disable"
 	}
 
-	store, err := storage.NewStore(ctx, redisAddr, postgresDSN)
+	store, err := storage.NewStore(ctx, redisURL, postgresURL)
 	if err != nil {
 		log.Fatalf("failed to create store: %v", err)
 	}
@@ -68,8 +68,7 @@ func main() {
 	go func() {
 		mux := runtime.NewServeMux()
 		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-		grpcEndpoint := "localhost" + grpcPort
-		err := pb.RegisterGameServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
+		err := pb.RegisterGameServiceHandlerFromEndpoint(ctx, mux, grpcPort, opts)
 		if err != nil {
 			log.Fatalf("failed to register gRPC gateway: %v", err)
 		}
@@ -85,4 +84,4 @@ func main() {
 	log.Println("Shutting down servers...")
 	// Add a small delay to allow for in-flight requests to complete
 	time.Sleep(2 * time.Second)
-} 
+}

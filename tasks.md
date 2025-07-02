@@ -96,3 +96,34 @@ This document outlines the development tasks required to build "The Game" accord
 - [x] Review and update `design.md`
 - [x] Ensure all code is formatted and linted
 - [x] Final commit and push
+
+# Tasks for Dockerizing the Application
+
+- [ ] **1. Create a `Dockerfile` for the Server**
+
+  - Create a new file named `Dockerfile` in the project root.
+  - Define a multi-stage build to compile the Go server.
+    - **Build Stage**: Use a standard Go image (e.g., `golang:1.22-alpine`) to build the binary.
+    - **Final Stage**: Use a minimal base image (e.g., `scratch`) and copy the compiled binary into it for a smaller and more secure final image.
+  - Expose the gRPC port (50051).
+
+- [ ] **2. Update `docker-compose.yml`**
+
+  - Add a new service for `the-game-server`.
+  - Configure the service to build from the newly created `Dockerfile`.
+  - Set the service to be dependent on the `postgres` and `redis` services (`depends_on`).
+  - Map the server's port (e.g., `50051:50051`).
+  - Add an environment section to pass database connection details to the server.
+
+- [ ] **3. Use Environment Variables for Configuration**
+
+  - Modify the `pkg/storage/storage.go` file.
+  - Update the `NewStore` function to read the PostgreSQL connection string from environment variables instead of having it hardcoded.
+
+- [ ] **4. Update the `Makefile`**
+
+  - Add a `docker-build` target to build the Docker images using `docker-compose build`.
+  - Add `docker-up` and `docker-down` targets to start and stop the entire application stack using `docker-compose`.
+
+- [ ] **5. Document the New Setup**
+  - Update `README.md` with instructions on how to use the new Docker commands to run the project.

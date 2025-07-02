@@ -11,11 +11,11 @@ GOMOD=$(GOCMD) mod
 GOTIDY=$(GOMOD) tidy
 
 # Protoc parameters
-PROTOC=protoc
+PROTOC=/usr/local/bin/protoc
 PROTOC_GEN_GO_PATH=$(shell go env GOMODCACHE)/github.com/protocolbuffers/protobuf-go@v1.34.2
 PROTOC_GEN_GO_GRPC_PATH=$(shell go env GOMODCACHE)/google.golang.org/grpc@v1.65.0
 
-.PHONY: all test clean deps proto mocks generate
+.PHONY: all test clean deps proto mocks generate docker-build docker-up docker-down
 
 all: server client
 
@@ -51,6 +51,7 @@ proto:
 	 --go_out=proto --go_opt=paths=source_relative \
      --go-grpc_out=proto --go-grpc_opt=paths=source_relative \
      --grpc-gateway_out=proto --grpc-gateway_opt=paths=source_relative \
+     -I/usr/local/include \
      -I=third_party/googleapis \
 	 proto/game.proto
 
@@ -61,5 +62,15 @@ mocks:
 # Tidy dependencies
 tidy:
 	$(GOTIDY)
+
+# Docker commands
+docker-build:
+	docker-compose build
+
+docker-up:
+	docker-compose up -d
+
+docker-down:
+	docker-compose down
 
 .DEFAULT_GOAL := all 

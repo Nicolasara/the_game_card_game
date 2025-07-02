@@ -29,11 +29,13 @@ type Store struct {
 }
 
 // NewStore creates a new Store with connections to Redis and PostgreSQL.
-func NewStore(ctx context.Context, redisAddr, pgConnStr string) (*Store, error) {
+func NewStore(ctx context.Context, redisURL, pgConnStr string) (*Store, error) {
 	// Connect to Redis
-	rdb := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis URL: %w", err)
+	}
+	rdb := redis.NewClient(opt)
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("failed to connect to redis: %w", err)
 	}
@@ -138,4 +140,4 @@ func (s *Store) SubscribeToGameUpdates(ctx context.Context, gameID string) (<-ch
 	}
 
 	return ch, closeFunc, nil
-} 
+}

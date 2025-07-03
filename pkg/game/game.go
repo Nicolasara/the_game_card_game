@@ -10,6 +10,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// Move represents a single card play action.
+type Move struct {
+	Card *pb.Card
+	Pile string
+}
+
 // NewGame initializes a new game state.
 func NewGame(gameID string, playerID string) *pb.GameState {
 	const handSize = 8
@@ -134,6 +140,27 @@ func isMovePossible(hand *pb.Hand, piles map[string]*pb.Pile) bool {
 		}
 	}
 	return false
+}
+
+// GetPossibleMoves returns a list of all valid moves for a given player.
+func GetPossibleMoves(playerID string, state *pb.GameState) []Move {
+	var moves []Move
+	hand, ok := state.Hands[playerID]
+	if !ok {
+		return moves
+	}
+
+	for _, card := range hand.Cards {
+		for pileID, pile := range state.Piles {
+			topCard := pile.Cards[len(pile.Cards)-1]
+			isTenBack := (pile.Ascending && card.Value == topCard.Value-10) || (!pile.Ascending && card.Value == topCard.Value+10)
+			isValid := (pile.Ascending && card.Value > topCard.Value) || (!pile.Ascending && card.Value < topCard.Value) || isTenBack
+			if isValid {
+				moves = append(moves, Move{Card: card, Pile: pileID})
+			}
+		}
+	}
+	return moves
 }
 
 // EndTurn replenishes the player's hand, resets the turn counter, and advances to the next player.

@@ -2,32 +2,25 @@
 
 ## Phase 1: Foundational Setup
 
-- [ ] Create `cmd/bot` directory for the new bot client.
-- [ ] Implement the basic bot client that can connect to the game server.
-- [ ] Define the `Strategy` interface in a new `pkg/bot` package.
-- [ ] Create a simple "random play" strategy as the first implementation.
+- [x] Create `cmd/bot` directory for the new bot client.
+- [x] Implement the basic bot client that can connect to the game server.
+- [x] Define the `Strategy` interface in a new `pkg/bot` package.
+- [x] Implement a "Random" strategy for a baseline comparison.
 
 ## Phase 2: Data Collection
 
-- [ ] Enhance the game server to log game events to a file.
-- [ ] Decide on a structured logging format (JSON is a good starting point).
-- [ ] Ensure all relevant game actions (play card, end turn, game over) are logged.
 - [ ] Implement structured JSON logging in the server to a `game_logs.jsonl` file.
 - [ ] Log the `game_start` event with `game_id`, `num_players`, and `player_strategies`.
 - [ ] Log `play_card`, `end_turn`, and `game_over` events with all relevant context.
 
 ## Phase 3: Initial Strategies
 
-- [ ] Implement a "Random" strategy for a baseline comparison.
 - [ ] Implement a "Minimal Jump" (greedy) strategy.
 - [ ] Implement a "Safe Ten" (defensive) strategy.
+- [ ] Implement a "Random" strategy for a baseline comparison.
 
 ## Phase 4: Analysis and Visualization
 
-- [ ] Set up a Python environment with Pandas and Matplotlib.
-- [ ] Write a script to parse the game log file.
-- [ ] Calculate and print basic statistics (win rate, game duration) for each strategy.
-- [ ] Create simple plots to visualize the performance of different strategies.
 - [ ] Set up a Python analysis environment (e.g., with Pandas, Matplotlib, Jupyter).
 - [ ] Write a script to parse the `game_logs.jsonl` file into a Pandas DataFrame.
 - [ ] Calculate primary metrics: Win Rate and Game Progress Score.

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"the_game_card_game/pkg/game"
+	"the_game_card_game/pkg/logger"
 	"the_game_card_game/pkg/storage"
 	pb "the_game_card_game/proto"
 
@@ -14,11 +16,55 @@ import (
 
 type Server struct {
 	pb.UnimplementedGameServiceServer
-	store storage.Storer
+	store  storage.Storer
+	logger *logger.Logger
 }
 
-func NewServer(store storage.Storer) *Server {
-	return &Server{store: store}
+func NewServer(store storage.Storer, logger *logger.Logger) *Server {
+	return &Server{store: store, logger: logger}
+}
+
+// GameEvent is a generic struct for all game log events.
+type GameEvent struct {
+	Timestamp time.Time   `json:"timestamp"`
+	GameID    string      `json:"game_id"`
+	EventType string      `json:"event_type"`
+	Payload   interface{} `json:"payload"`
+}
+
+// GameStartEventPayload contains the data for a 'game_start' event.
+type GameStartEventPayload struct {
+	PlayerID string `json:"player_id"`
+}
+
+// PlayCardEventPayload contains the data for a 'play_card' event.
+type PlayCardEventPayload struct {
+	PlayerID  string `json:"player_id"`
+	CardValue int32  `json:"card_value"`
+	PileID    string `json:"pile_id"`
+}
+
+// EndTurnEventPayload contains the data for an 'end_turn' event.
+type EndTurnEventPayload struct {
+	PlayerID string `json:"player_id"`
+}
+
+// GameOverEventPayload contains the data for a 'game_over' event.
+type GameOverEventPayload struct {
+	Winner  string `json:"winner,omitempty"`
+	Message string `json:"message"`
+}
+
+func (s *Server) logEvent(gameID, eventType string, payload interface{}) {
+	event := GameEvent{
+		Timestamp: time.Now(),
+		GameID:    gameID,
+		EventType: eventType,
+		Payload:   payload,
+	}
+	if err := s.logger.Log(event); err != nil {
+		log.Printf("failed to log event: %v", err)
+	}
 }
 
 func (s *Server) CreateGame(ctx context.Context, req *pb.CreateGameRequest) (*pb.CreateGameResponse, error) {
@@ -26,6 +72,10 @@ func (s *Server) CreateGame(ctx context.Context, req *pb.CreateGameRequest) (*pb
 
 	gameID := uuid.New().String()
 	playerID := req.GetPlayerId()
+
+	s.logEvent(gameID, "game_start", GameStartEventPayload{
+		PlayerID: playerID,
+	})
 
 	// Create the initial game state using the game logic package
 	initialState := game.NewGame(gameID, playerID)
@@ -99,6 +149,18 @@ func (s *Server) PlayCard(ctx context.Context, req *pb.PlayCardRequest) (*pb.Pla
 		return &pb.PlayCardResponse{Success: false, Message: err.Error()}, nil
 	}
 
+	s.logEvent(req.GetGameId(), "play_card", PlayCardEventPayload{
+		PlayerID:  req.GetPlayerId(),
+		CardValue: req.GetCard().GetValue(),
+		PileID:    req.GetPileId(),
+	})
+
+	if newState.GetGameOver() {
+		s.logEvent(req.GetGameId(), "game_over", GameOverEventPayload{
+			Message: newState.GetMessage(),
+		})
+	}
+
 	// Update the game state in Redis
 	if err := s.store.UpdateGameState(ctx, req.GetGameId(), newState); err != nil {
 		log.Printf("failed to update game state: %v", err)
@@ -146,6 +208,17 @@ func (s *Server) EndTurn(ctx context.Context, req *pb.EndTurnRequest) (*pb.EndTu
 	newState, err := game.EndTurn(state, req.GetPlayerId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to process end turn: %w", err)
+	}
+
+	s.logEvent(req.GetGameId(), "end_turn", EndTurnEventPayload{
+		PlayerID: req.GetPlayerId(),
+	})
+
+	if newState.GetGameOver() {
+		s.logEvent(req.GetGameId(), "game_over", GameOverEventPayload{
+			Winner:  newState.GetWinner(),
+			Message: newState.GetMessage(),
+		})
 	}
 
 	// Update state in Redis

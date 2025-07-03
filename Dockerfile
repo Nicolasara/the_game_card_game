@@ -23,7 +23,10 @@ RUN apt-get update && apt-get install -y make curl unzip && \
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the go.mod and go.sum files to leverage Docker's layer caching
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Copy dependency management files
 COPY go.mod go.sum ./
 COPY Makefile ./
 

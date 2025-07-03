@@ -27,6 +27,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "50051:50051"
+    volumes:
+      - ./logs:/app/logs
     depends_on:
       - postgres
       - redis

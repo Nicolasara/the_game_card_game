@@ -17,7 +17,7 @@ PROTOC_GEN_GO_GRPC_PATH=$(shell go env GOMODCACHE)/google.golang.org/grpc@v1.65.
 
 .PHONY: all test clean deps proto mocks generate docker-build docker-up docker-down
 
-all: server client
+all: server client bot
 
 # Build the server and client
 server:
@@ -25,6 +25,9 @@ server:
 
 client:
 	$(GOBUILD) -o bin/client ./cmd/client
+
+bot:
+	$(GOBUILD) -o bin/bot ./cmd/bot
 
 # Run tests
 test:

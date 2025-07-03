@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"the_game_card_game/pkg/logger"
 	"the_game_card_game/pkg/server"
 	"the_game_card_game/pkg/storage"
 	pb "the_game_card_game/proto"
@@ -48,7 +49,13 @@ func main() {
 	}
 	defer store.Close()
 
-	gameServer := server.NewServer(store)
+	gameLogger, err := logger.New("/app/logs/game_logs.jsonl")
+	if err != nil {
+		log.Fatalf("failed to create logger: %v", err)
+	}
+	defer gameLogger.Close()
+
+	gameServer := server.NewServer(store, gameLogger)
 
 	// --- gRPC Server ---
 	go func() {

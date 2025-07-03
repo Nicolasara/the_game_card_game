@@ -1,0 +1,4 @@
+{"timestamp":"2025-07-03T21:41:20.430835752Z","game_id":"bcead77e-6e84-4298-9dc2-e277b043b54e","event_type":"game_start","payload":{"player_id":"bot-player"}}
+{"timestamp":"2025-07-03T21:41:20.443436168Z","game_id":"bcead77e-6e84-4298-9dc2-e277b043b54e","event_type":"play_card","payload":{"player_id":"bot-player","card_value":15,"pile_id":"up1"}}
+{"timestamp":"2025-07-03T21:41:20.447371085Z","game_id":"bcead77e-6e84-4298-9dc2-e277b043b54e","event_type":"play_card","payload":{"player_id":"bot-player","card_value":17,"pile_id":"up1"}}
+{"timestamp":"2025-07-03T21:41:20.449883168Z","game_id":"bcead77e-6e84-4298-9dc2-e277b043b54e","event_type":"end_turn","payload":{"player_id":"bot-player"}}

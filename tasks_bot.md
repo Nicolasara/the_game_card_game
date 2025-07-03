@@ -9,9 +9,9 @@
 
 ## Phase 2: Data Collection
 
-- [ ] Implement structured JSON logging in the server to a `game_logs.jsonl` file.
-- [ ] Log the `game_start` event with `game_id`, `num_players`, and `player_strategies`.
-- [ ] Log `play_card`, `end_turn`, and `game_over` events with all relevant context.
+- [x] Implement structured JSON logging in the server to a `game_logs.jsonl` file.
+- [x] Log the `game_start` event with `game_id`, `num_players`, and `player_strategies`.
+- [x] Log `play_card`, `end_turn`, and `game_over` events with all relevant context.
 
 ## Phase 3: Initial Strategies
 

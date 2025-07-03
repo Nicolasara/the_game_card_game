@@ -44,10 +44,11 @@ RUN make generate
 # CGO_ENABLED=0 is important for a static build.
 # GOOS=linux is necessary because we're building on Alpine for a scratch image.
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /bot ./cmd/bot
 
-# --- Final Stage ---
+# --- Server Final Stage ---
 # Use a minimal 'scratch' image for the final container
-FROM scratch
+FROM scratch as server-image
 
 # Copy the compiled binary from the builder stage
 COPY --from=builder /server /server
@@ -56,4 +57,13 @@ COPY --from=builder /server /server
 EXPOSE 50051
 
 # Set the entrypoint for the container to run the server
-ENTRYPOINT ["/server"] 
+ENTRYPOINT ["/server"]
+
+# --- Bot Final Stage ---
+FROM scratch as bot-image
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /bot /bot
+
+# Set the entrypoint for the container to run the bot
+ENTRYPOINT ["/bot"] 

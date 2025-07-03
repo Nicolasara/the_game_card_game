@@ -72,6 +72,10 @@ func (s *Server) CreateGame(ctx context.Context, req *pb.CreateGameRequest) (*pb
 
 	gameID := uuid.New().String()
 	playerID := req.GetPlayerId()
+	if playerID == "" {
+		playerID = uuid.New().String()
+		log.Printf("Player ID was not provided, generated a new one: %s", playerID)
+	}
 
 	s.logEvent(gameID, "game_start", GameStartEventPayload{
 		PlayerID: playerID,
@@ -199,15 +203,10 @@ func (s *Server) EndTurn(ctx context.Context, req *pb.EndTurnRequest) (*pb.EndTu
 		return &pb.EndTurnResponse{Success: false, Message: msg}, nil
 	}
 
-	// Validate that the player has played at least two cards.
-	if state.CardsPlayedThisTurn < 2 {
-		msg := fmt.Sprintf("must play at least 2 cards to end turn (played %d)", state.CardsPlayedThisTurn)
-		return &pb.EndTurnResponse{Success: false, Message: msg}, nil
-	}
-
 	newState, err := game.EndTurn(state, req.GetPlayerId())
 	if err != nil {
-		return nil, fmt.Errorf("failed to process end turn: %w", err)
+		log.Printf("invalid end turn for player %s: %v", req.GetPlayerId(), err)
+		return &pb.EndTurnResponse{Success: false, Message: err.Error()}, nil
 	}
 
 	s.logEvent(req.GetGameId(), "end_turn", EndTurnEventPayload{

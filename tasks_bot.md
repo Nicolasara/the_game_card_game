@@ -30,7 +30,7 @@
 
 ## Phase 5: Scaling and Refinement
 
-- [ ] Update `docker-compose.yml` to allow running multiple bot clients in parallel.
-- [ ] Run a large number of simulations (e.g., 10,000 games) for each strategy.
+- [x] Update `docker-compose.yml` to allow running multiple bot clients in parallel.
+- [x] Run a large number of simulations (e.g., 10,000 games) for each strategy.
 - [ ] Refine the data analysis scripts to provide deeper insights.
 - [ ] Document the findings and the performance of each strategy.

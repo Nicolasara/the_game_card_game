@@ -15,15 +15,15 @@
 
 ## Phase 3: Initial Strategies
 
-- [ ] Implement a "Minimal Jump" (greedy) strategy.
-- [ ] Implement a "Safe Ten" (defensive) strategy.
-- [ ] Implement a "Random" strategy for a baseline comparison.
+- [x] Implement a "Minimal Jump" (greedy) strategy.
+- [x] Implement a "Safe Ten" (defensive) strategy.
+- [x] Implement a "Random" strategy for a baseline comparison.
 
 ## Phase 4: Analysis and Visualization
 
-- [ ] Set up a Python analysis environment (e.g., with Pandas, Matplotlib, Jupyter).
-- [ ] Write a script to parse the `game_logs.jsonl` file into a Pandas DataFrame.
-- [ ] Calculate primary metrics: Win Rate and Game Progress Score.
+- [x] Set up a Python analysis environment (e.g., with Pandas, Matplotlib, Jupyter).
+- [x] Write a script to parse the `game_logs.jsonl` file into a Pandas DataFrame.
+- [x] Calculate primary metrics: Win Rate and Game Progress Score.
 - [ ] Analyze and plot performance based on player count and opponent strategy mix.
 - [ ] Analyze and plot secondary metrics: Game Duration, Pile Health, "Backwards-10" frequency.
 

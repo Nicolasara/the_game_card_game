@@ -8,7 +8,7 @@ FROM golang:1.24 AS builder
 ENV PROTOC_VERSION=22.0
 
 # Install build dependencies and protoc
-RUN apt-get update && apt-get install -y make curl unzip && \
+RUN apt-get update && apt-get install -y make curl unzip protobuf-compiler && \
   ARCH=$(uname -m) && \
   case $ARCH in \
   x86_64) PROTOC_ARCH=x86_64 ;; \

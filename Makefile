@@ -11,7 +11,7 @@ GOMOD=$(GOCMD) mod
 GOTIDY=$(GOMOD) tidy
 
 # Protoc parameters
-PROTOC=/usr/local/bin/protoc
+PROTOC ?= $(shell which protoc)
 PROTOC_GEN_GO_PATH=$(shell go env GOMODCACHE)/github.com/protocolbuffers/protobuf-go@v1.34.2
 PROTOC_GEN_GO_GRPC_PATH=$(shell go env GOMODCACHE)/google.golang.org/grpc@v1.65.0
 

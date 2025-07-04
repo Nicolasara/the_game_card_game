@@ -97,6 +97,7 @@ message CreateGameResponse {
 message JoinGameRequest {
   string game_id = 1;
   string player_id = 2;
+  string strategy = 3;
 }
 
 message JoinGameResponse {

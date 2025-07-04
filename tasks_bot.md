@@ -24,7 +24,8 @@
 - [x] Set up a Python analysis environment (e.g., with Pandas, Matplotlib, Jupyter).
 - [x] Write a script to parse the `game_logs.jsonl` file into a Pandas DataFrame.
 - [x] Calculate primary metrics: Win Rate and Game Progress Score.
-- [ ] Analyze and plot performance based on player count and opponent strategy mix.
+- [x] Analyze and plot performance based on player count and opponent strategy for a single player game.
+- [ ] Analyze and plot performance based on player count and strategy mix for a multi-player game.
 - [ ] Analyze and plot secondary metrics: Game Duration, Pile Health, "Backwards-10" frequency.
 
 ## Phase 5: Scaling and Refinement

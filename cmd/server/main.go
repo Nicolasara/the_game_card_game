@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"the_game_card_game/pkg/logger"
 	"the_game_card_game/pkg/server"
@@ -89,6 +88,11 @@ func main() {
 	// --- Wait for shutdown signal ---
 	<-sigChan
 	log.Println("Shutting down servers...")
-	// Add a small delay to allow for in-flight requests to complete
-	time.Sleep(2 * time.Second)
+	// Keep the main goroutine alive
+	select {}
+
+	// A more graceful shutdown would be implemented here.
+	// For now, we just sleep to keep the server running.
+	// log.Println("Server shutting down...")
+	// time.Sleep(2 * time.Second)
 }

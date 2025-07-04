@@ -55,6 +55,12 @@ type GameOverEventPayload struct {
 	Message string `json:"message"`
 }
 
+// PlayerJoinEventPayload contains the data for a 'player_join' event.
+type PlayerJoinEventPayload struct {
+	PlayerID string `json:"player_id"`
+	Strategy string `json:"strategy"`
+}
+
 func (s *Server) logEvent(gameID, eventType string, payload interface{}) {
 	event := GameEvent{
 		Timestamp: time.Now(),
@@ -119,6 +125,11 @@ func (s *Server) JoinGame(ctx context.Context, req *pb.JoinGameRequest) (*pb.Joi
 		log.Printf("failed to add player: %v", err)
 		return &pb.JoinGameResponse{Success: false}, err
 	}
+
+	s.logEvent(req.GetGameId(), "player_join", PlayerJoinEventPayload{
+		PlayerID: req.GetPlayerId(),
+		Strategy: req.GetStrategy(),
+	})
 
 	// Update the game state in Redis
 	if err := s.store.UpdateGameState(ctx, req.GetGameId(), newState); err != nil {

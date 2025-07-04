@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"time"
 
 	"the_game_card_game/pkg/bot"
 	pb "the_game_card_game/proto"
@@ -50,6 +49,17 @@ func main() {
 
 	log.Printf("Game created with ID: %s, Player ID: %s", gameID, playerID)
 
+	// Join the game
+	joinRes, err := client.JoinGame(context.Background(), &pb.JoinGameRequest{
+		GameId:   gameID,
+		PlayerId: playerID,
+		Strategy: *strategy,
+	})
+	if err != nil {
+		log.Fatalf("could not join game: %v", err)
+	}
+	log.Printf("Successfully joined game: %v", joinRes.GetSuccess())
+
 	// Game loop
 	for {
 		// Get game state
@@ -72,7 +82,6 @@ func main() {
 		// Check if it's our turn
 		if gameState.CurrentTurnPlayerId != playerID {
 			// It's not our turn, wait a bit
-			time.Sleep(500 * time.Millisecond)
 			continue
 		}
 
@@ -107,8 +116,5 @@ func main() {
 				log.Fatalf("could not end turn: %v", err)
 			}
 		}
-
-		// Small delay to make the game observable
-		time.Sleep(500 * time.Millisecond)
 	}
 }

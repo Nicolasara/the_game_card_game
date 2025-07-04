@@ -50,11 +50,7 @@ services:
   bot:
     <<: *bot-base
     command:
-      [
-        "--server=the-game-server:50051",
-        "--strategy=random",
-        "--num_games=1667",
-      ]
+      ["--server=the-game-server:50051", "--strategy=random", "--num_games=833"]
     deploy:
       replicas: 2
 
@@ -64,7 +60,7 @@ services:
       [
         "--server=the-game-server:50051",
         "--strategy=minimal-jump",
-        "--num_games=1667",
+        "--num_games=833",
       ]
     deploy:
       replicas: 2
@@ -75,7 +71,32 @@ services:
       [
         "--server=the-game-server:50051",
         "--strategy=safe-ten",
-        "--num_games=1667",
+        "--num_games=833",
+      ]
+    deploy:
+      replicas: 2
+
+  bot-smart:
+    <<: *bot-base
+    command:
+      ["--server=the-game-server:50051", "--strategy=smart", "--num_games=833"]
+    deploy:
+      replicas: 2
+
+  bot-phased:
+    <<: *bot-base
+    command:
+      ["--server=the-game-server:50051", "--strategy=phased", "--num_games=833"]
+    deploy:
+      replicas: 2
+
+  bot-two-card-greedy:
+    <<: *bot-base
+    command:
+      [
+        "--server=the-game-server:50051",
+        "--strategy=two-card-greedy",
+        "--num_games=833",
       ]
     deploy:
       replicas: 2

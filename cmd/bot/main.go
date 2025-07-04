@@ -36,6 +36,12 @@ func main() {
 		botStrategy = bot.NewMinimalJumpStrategy()
 	case "safe-ten":
 		botStrategy = bot.NewSafeTenStrategy()
+	case "smart":
+		botStrategy = bot.NewSmartStrategy()
+	case "phased":
+		botStrategy = bot.NewPhasedStrategy()
+	case "two-card-greedy":
+		botStrategy = bot.NewTwoCardGreedyStrategy()
 	default:
 		log.Fatalf("Unknown strategy: %s", *strategy)
 	}

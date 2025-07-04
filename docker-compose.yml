@@ -50,7 +50,11 @@ services:
   bot:
     <<: *bot-base
     command:
-      ["--server=the-game-server:50051", "--strategy=random", "--num_games=100"]
+      [
+        "--server=the-game-server:50051",
+        "--strategy=random",
+        "--num_games=1667",
+      ]
     deploy:
       replicas: 2
 
@@ -60,7 +64,7 @@ services:
       [
         "--server=the-game-server:50051",
         "--strategy=minimal-jump",
-        "--num_games=100",
+        "--num_games=1667",
       ]
     deploy:
       replicas: 2
@@ -71,7 +75,7 @@ services:
       [
         "--server=the-game-server:50051",
         "--strategy=safe-ten",
-        "--num_games=100",
+        "--num_games=1667",
       ]
     deploy:
       replicas: 2
